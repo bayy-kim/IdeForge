@@ -43,6 +43,8 @@ yarn-error.log*
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+auth
+auth-wal
 
 # vercel
 .vercel
