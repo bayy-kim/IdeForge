@@ -9,14 +9,34 @@ export async function GET() {
     AUTH_URL: process.env.AUTH_URL || "NOT SET",
   };
 
-  let dbTest = "";
+  const results: Record<string, string> = {};
+
+  // 1. Basic connection
   try {
     const { client } = await import("@/lib/db/index");
     const rs = await client.execute("SELECT 1 as test");
-    dbTest = "OK: " + JSON.stringify(rs.rows[0]);
+    results.connection = "OK: " + JSON.stringify(rs.rows[0]);
   } catch (e) {
-    dbTest = "FAIL: " + (e instanceof Error ? e.message : String(e));
+    results.connection = "FAIL: " + (e instanceof Error ? e.message : String(e));
   }
 
-  return NextResponse.json({ env, dbTest });
+  // 2. Table creation via dbReady
+  try {
+    const { dbReady } = await import("@/lib/db/index");
+    await dbReady();
+    results.dbReady = "OK";
+  } catch (e) {
+    results.dbReady = "FAIL: " + (e instanceof Error ? e.message : String(e));
+  }
+
+  // 3. Try creating a plan
+  try {
+    const { createPlan } = await import("@/lib/db/repo");
+    const plan = await createPlan("Test plan diag", "id");
+    results.createPlan = "OK: " + plan.id;
+  } catch (e) {
+    results.createPlan = "FAIL: " + (e instanceof Error ? e.message : String(e));
+  }
+
+  return NextResponse.json({ env, results });
 }
