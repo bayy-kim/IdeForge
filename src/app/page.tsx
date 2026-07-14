@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Code, FileText, MessageSquare, ChevronDown, Sparkles, BookOpen } from "lucide-react";
 import { CtaButton } from "@/components/cta-button";
 import { AuthButton } from "@/components/auth-button";
+import { HeroMindmap } from "@/components/hero-mindmap";
 
 export default function HomePage() {
   return (
@@ -41,6 +42,7 @@ export default function HomePage() {
             <div className="mt-10 flex justify-center">
               <CtaButton />
             </div>
+            <HeroMindmap />
           </div>
         </section>
 
