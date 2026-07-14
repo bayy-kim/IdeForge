@@ -13,7 +13,7 @@ export function HeroMindmap() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setPhase((p) => (p >= 5 ? 0 : p + 1));
+      setPhase((p) => (p >= 6 ? 0 : p + 1));
     }, 800);
     return () => clearInterval(timer);
   }, []);
