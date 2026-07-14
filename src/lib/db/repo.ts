@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "./index";
+import { db, dbReady } from "./index";
 import { plans, type PlanRow } from "./schema";
 import type { Plan } from "@/lib/types";
 
@@ -30,6 +30,7 @@ function rowToPlan(row: PlanRow): Plan {
 }
 
 export async function createPlan(ideaText: string, language: string, userEmail?: string | null): Promise<Plan> {
+  await dbReady();
   const now = new Date().toISOString();
   const row: typeof plans.$inferInsert = {
     id: genId(),
@@ -45,11 +46,13 @@ export async function createPlan(ideaText: string, language: string, userEmail?:
 }
 
 export async function getPlan(id: string): Promise<Plan | null> {
+  await dbReady();
   const row = await db.select().from(plans).where(eq(plans.id, id)).get();
   return row ? rowToPlan(row) : null;
 }
 
 export async function listPlansByUser(userEmail: string): Promise<Plan[]> {
+  await dbReady();
   const rows = await db.select().from(plans).where(eq(plans.userEmail, userEmail)).all();
   return rows
     .map(rowToPlan)
@@ -57,6 +60,7 @@ export async function listPlansByUser(userEmail: string): Promise<Plan[]> {
 }
 
 export async function listPlans(): Promise<Plan[]> {
+  await dbReady();
   const rows = await db.select().from(plans).all();
   return rows
     .map(rowToPlan)
@@ -64,6 +68,7 @@ export async function listPlans(): Promise<Plan[]> {
 }
 
 export async function updatePlan(id: string, patch: Partial<Omit<PlanRow, "id" | "createdAt">>): Promise<Plan | null> {
+  await dbReady();
   const now = new Date().toISOString();
   await db.update(plans)
     .set({ ...patch, updatedAt: now })
@@ -73,6 +78,7 @@ export async function updatePlan(id: string, patch: Partial<Omit<PlanRow, "id" |
 }
 
 export async function deletePlan(id: string): Promise<boolean> {
+  await dbReady();
   const res = await db.delete(plans).where(eq(plans.id, id)).run();
   return res.rowsAffected > 0;
 }

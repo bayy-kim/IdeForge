@@ -71,6 +71,8 @@ export default function PlanLandingPage() {
         <div className="rounded-2xl border border-line bg-ink-raised p-2 shadow-[0_0_0_1px_rgba(0,0,0,0.2)]">
           <Textarea
             value={ideaText}
+            id="idea-text"
+            name="idea-text"
             onChange={(e) => setIdeaText(e.target.value)}
             placeholder={language === "id" ? PLACEHOLDER : 'Example: "Daily expense tracker app, can input via WhatsApp, with monthly dashboard..."'}
             rows={5}

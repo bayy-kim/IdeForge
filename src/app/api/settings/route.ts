@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { client } from "@/lib/db/index";
+import { client, dbReady } from "@/lib/db/index";
 import { auth } from "@/lib/auth";
 
 /** Returns the lookup ID: email when logged in, device_id otherwise. */
@@ -10,6 +10,7 @@ async function resolveId(bodyDeviceId?: string | null): Promise<string | null> {
 }
 
 export async function GET(req: NextRequest) {
+  await dbReady();
   const id = await resolveId();
   const deviceId = id || req.nextUrl.searchParams.get("device_id");
   if (!deviceId) {
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  await dbReady();
   const body = await req.json().catch(() => null);
   const key: string | undefined = body?.key;
   const value: string | undefined = body?.value;
@@ -54,6 +56,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  await dbReady();
   const body = await req.json().catch(() => null);
   const key: string | undefined = body?.key;
   if (!key) {
