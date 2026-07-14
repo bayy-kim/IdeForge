@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const demoData = [
-  { id: "f1", name: "Dashboard", phase: 1, color: "var(--signal)", subs: ["Ringkasan bulanan", "Chart pengeluaran", "Filter tanggal"] },
-  { id: "f2", name: "Catat Transaksi", phase: 2, color: "var(--trace)", subs: ["Input manual", "Kategori", "Scan nota"] },
-  { id: "f3", name: "WhatsApp Integration", phase: 3, color: "var(--paper)", subs: ["Webhook Twilio", "Parser pesan", "Konfirmasi"] },
+  { id: "f1", name: "Dashboard", phase: 1, color: "var(--signal)", subs: ["Monthly summary", "Expense chart", "Date filter"] },
+  { id: "f2", name: "Record Transaction", phase: 2, color: "var(--trace)", subs: ["Manual input", "Categories", "Receipt scan"] },
+  { id: "f3", name: "WhatsApp Integration", phase: 3, color: "var(--paper)", subs: ["Twilio webhook", "Message parser", "Confirmation"] },
 ];
 
 const ROOT_X = 40;
@@ -39,12 +39,6 @@ export function HeroMindmap() {
           className="w-full h-auto overflow-visible"
           fill="none"
         >
-          <defs>
-            <filter id="lineGlow">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="var(--signal)" floodOpacity="0.6" />
-            </filter>
-          </defs>
-
           {/* Entire diagram entrance */}
           <motion.g
             initial={{ opacity: 0, y: 20 }}
@@ -62,39 +56,25 @@ export function HeroMindmap() {
 
               return (
                 <g key={f.id}>
-                  {/* Base subtle line — always visible */}
-                  <path
+                  <motion.path
                     d={path}
-                    stroke="rgb(71 85 105)"
-                    strokeWidth={1.5}
-                    strokeOpacity={0.3}
                     fill="none"
+                    stroke={isHovered ? f.color : "rgb(71 85 105)"}
+                    strokeWidth={isHovered ? 2.5 : 1.5}
+                    strokeOpacity={isHovered ? 0.9 : 0.3}
+                    style={isHovered ? { filter: `drop-shadow(0 0 6px ${f.color})` } : {}}
+                    className="transition-all duration-300 ease-out"
+                    initial={{ pathLength: 0 }}
+                    whileInView={{ pathLength: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.3 + i * 0.25, ease: "easeInOut" }}
                   />
 
-                  {/* Hover overlay — single-pass draw + glow */}
-                  <AnimatePresence>
-                    {isHovered && (
-                      <motion.path
-                        d={path}
-                        stroke="var(--signal)"
-                        strokeWidth={2.5}
-                        strokeOpacity={0.9}
-                        fill="none"
-                        style={{ filter: "url(#lineGlow)" }}
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                      />
-                    )}
-                  </AnimatePresence>
-
-                  {/* Pulse dot */}
                   <motion.circle
                     cx={leftEdge}
                     cy={cy}
                     r={isHovered ? 5 : 3}
-                    fill={isHovered ? "var(--signal)" : "rgb(71 85 105)"}
+                    fill={isHovered ? f.color : "rgb(71 85 105)"}
                     className="transition-all duration-300"
                   />
                 </g>

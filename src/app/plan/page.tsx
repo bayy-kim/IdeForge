@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Textarea } from "@/components/ui/textarea";
 import { LoginPopover } from "@/components/login-popover";
+import { BgOrbs } from "@/components/bg-orbs";
 
 const PLACEHOLDER =
   'Contoh: "Aplikasi pencatat pengeluaran harian, bisa input lewat WhatsApp, ada dashboard ringkasan bulanan..."';
@@ -93,6 +94,7 @@ export default function PlanLandingPage() {
 
       <main className="relative flex flex-1 flex-col items-center justify-center px-6">
         <div className="blueprint-grid pointer-events-none absolute inset-0" />
+        <BgOrbs />
 
         <div className="relative z-10 w-full max-w-2xl">
           <div className="mb-10 text-center">
