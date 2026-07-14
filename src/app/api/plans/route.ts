@@ -35,7 +35,9 @@ export async function POST(req: NextRequest) {
     const userEmail = session?.user?.email;
     const plan = await createPlan(ideaText, language, userEmail);
     return NextResponse.json({ plan });
-  } catch {
-    return NextResponse.json({ error: "Gagal membuat plan." }, { status: 500 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[plans/POST]", msg);
+    return NextResponse.json({ error: "Gagal membuat plan.", detail: msg.slice(0, 200) }, { status: 500 });
   }
 }

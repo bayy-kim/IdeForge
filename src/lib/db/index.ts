@@ -22,11 +22,17 @@ export const client = createClient({
 export const db = drizzle(client, { schema });
 
 let _dbReady: Promise<void> | null = null;
+let _dbFailed = false;
 
 export function dbReady(): Promise<void> {
+  if (_dbFailed) {
+    _dbReady = null;
+    _dbFailed = false;
+  }
   if (!_dbReady) {
     _dbReady = (async () => {
-      await client.execute("PRAGMA busy_timeout = 5000");
+      try {
+        await client.execute("PRAGMA busy_timeout = 5000");
       await client.execute(`
         CREATE TABLE IF NOT EXISTS plans (
           id TEXT PRIMARY KEY,
@@ -66,6 +72,11 @@ export function dbReady(): Promise<void> {
           PRIMARY KEY (device_id, key)
         );
       `);
+      } catch (e) {
+        _dbReady = null;
+        _dbFailed = true;
+        throw e;
+      }
     })();
   }
   return _dbReady;
