@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Edit3, Check, X, Loader2 } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import { StructureFlow } from "@/components/structure/structure-flow";
@@ -11,12 +11,8 @@ import { Input } from "@/components/ui/input";
 import { apiFetch } from "@/lib/utils";
 import type { Plan } from "@/lib/types";
 
-export default function StructurePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function StructurePage() {
+  const { id } = useParams() as { id: string };
   const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);

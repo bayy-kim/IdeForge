@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, use, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Copy, Check, PartyPopper, ChevronLeft, Download, Wrench } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import ReactMarkdown from "react-markdown";
@@ -12,8 +13,8 @@ import type { Plan } from "@/lib/types";
 
 type Tab = "prompt" | "skills";
 
-export default function PromptPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function PromptPage() {
+  const { id } = useParams() as { id: string };
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);

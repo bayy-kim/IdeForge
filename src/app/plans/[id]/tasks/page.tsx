@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, use, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Check, RotateCw, Download, CheckCheck } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn, apiFetch } from "@/lib/utils";
 import type { Plan, PlanTask } from "@/lib/types";
 
-export default function TasksPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function TasksPage() {
+  const { id } = useParams() as { id: string };
   const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);

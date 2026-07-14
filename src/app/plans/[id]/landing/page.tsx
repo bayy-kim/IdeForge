@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Check, RotateCw, Sparkles, Maximize2, Download, X } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,8 @@ const AVAILABLE_MODELS = [
   { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
 ];
 
-export default function LandingPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function LandingPage() {
+  const { id } = useParams() as { id: string };
   const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [selected, setSelected] = useState<string | null>(null);

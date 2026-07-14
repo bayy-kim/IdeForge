@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, use, useRef, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Download, Printer, Save, RotateCw, X, FolderTree, FileText, Check } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import ReactMarkdown from "react-markdown";
@@ -13,8 +13,8 @@ import type { Plan } from "@/lib/types";
 
 type Tab = "prd" | "struktur";
 
-export default function PrdPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function PrdPage() {
+  const { id } = useParams() as { id: string };
   const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
