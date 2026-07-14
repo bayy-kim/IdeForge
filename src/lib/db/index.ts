@@ -32,7 +32,6 @@ export function dbReady(): Promise<void> {
   if (!_dbReady) {
     _dbReady = (async () => {
       try {
-        await client.execute("PRAGMA busy_timeout = 5000");
       await client.execute(`
         CREATE TABLE IF NOT EXISTS plans (
           id TEXT PRIMARY KEY,
