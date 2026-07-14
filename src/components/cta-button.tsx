@@ -12,7 +12,7 @@ export function CtaButton() {
     if (session?.user?.email) {
       router.push("/plan");
     } else {
-      signIn("google");
+      signIn();
     }
   }
 

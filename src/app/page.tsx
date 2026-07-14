@@ -1,11 +1,28 @@
-import { Code, FileText, MessageSquare, ChevronDown, Sparkles } from "lucide-react";
-import { HomeNavbar } from "@/components/home-navbar";
+import Link from "next/link";
+import { Code, FileText, MessageSquare, ChevronDown, Sparkles, BookOpen } from "lucide-react";
 import { CtaButton } from "@/components/cta-button";
+import { AuthButton } from "@/components/auth-button";
 
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <HomeNavbar />
+      <header className="border-b border-line bg-ink/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <span className="font-display text-lg font-bold tracking-tight text-paper">
+            idē<span className="text-signal">forge</span>
+          </span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/panduanpenggunaan"
+              className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Guide</span>
+            </Link>
+            <AuthButton />
+          </div>
+        </div>
+      </header>
 
       <main className="flex-1">
         <section className="relative overflow-hidden px-6 pb-48 pt-24 sm:pb-56 sm:pt-32">
