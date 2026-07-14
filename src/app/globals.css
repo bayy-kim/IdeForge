@@ -1,0 +1,211 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --ink: #0a0d14;
+  --ink-raised: #12161f;
+  --ink-raised-2: #1a2029;
+  --line: #232b38;
+  --paper: #e9ecf3;
+  --muted: #7c8598;
+  --signal: #ff6b3d;
+  --signal-dim: #ff6b3d1a;
+  --trace: #4fd1c5;
+  --trace-dim: #4fd1c51a;
+  --danger: #ef5b5b;
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-raised: var(--ink-raised);
+  --color-ink-raised-2: var(--ink-raised-2);
+  --color-line: var(--line);
+  --color-paper: var(--paper);
+  --color-muted: var(--muted);
+  --color-signal: var(--signal);
+  --color-signal-dim: var(--signal-dim);
+  --color-trace: var(--trace);
+  --color-trace-dim: var(--trace-dim);
+  --color-danger: var(--danger);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* Faint drafting-table grid texture used on wizard/background surfaces */
+.blueprint-grid {
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  opacity: 0.5;
+}
+
+/* Animated dashed connector trace — signature motif for the structure graph */
+.trace-line {
+  stroke-dasharray: 6 5;
+  animation: trace-flow 1.4s linear infinite;
+}
+
+@keyframes trace-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trace-line {
+    animation: none;
+  }
+}
+
+/* Quantum Pulse Loader — letter bounce + bar sweep */
+.generating-loader-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.generating-loader-text {
+  display: flex;
+  gap: 2px;
+}
+
+.generating-loader-letter {
+  display: inline-block;
+  font-family: var(--font-mono), monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--signal);
+  opacity: 0;
+  animation: generating-loader-letter-anim 2.4s ease-in-out infinite;
+}
+
+.generating-loader-bar {
+  width: 200px;
+  height: 2px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.generating-loader-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 40%;
+  height: 100%;
+  background: var(--signal);
+  border-radius: 2px;
+  animation: generating-loader-bar-anim 1.6s ease-in-out infinite;
+}
+
+@keyframes generating-loader-letter-anim {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) rotateX(-90deg);
+    text-shadow: 0 0 0px rgba(255, 107, 61, 0);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+    text-shadow: 0 0 10px rgba(255, 107, 61, 0.6);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+    text-shadow: 0 0 10px rgba(255, 107, 61, 0.6);
+  }
+  50% {
+    opacity: 0;
+    transform: translateY(-20px) rotateX(90deg);
+    text-shadow: 0 0 0px rgba(255, 107, 61, 0);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes generating-loader-bar-anim {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: -100%;
+  }
+}
+
+::selection {
+  background: var(--signal-dim);
+  color: var(--paper);
+}
+
+* {
+  border-color: var(--line);
+}
+
+.prose-ideforge {
+  --tw-prose-body: var(--paper);
+  --tw-prose-headings: var(--paper);
+  --tw-prose-bold: var(--paper);
+  --tw-prose-links: var(--trace);
+  --tw-prose-bullets: var(--trace);
+  --tw-prose-hr: var(--line);
+  --tw-prose-quotes: var(--muted);
+  --tw-prose-quote-borders: var(--line);
+  --tw-prose-code: var(--signal);
+  --tw-prose-pre-bg: var(--ink-raised-2);
+  --tw-prose-pre-code: var(--paper);
+  --tw-prose-th-borders: var(--line);
+  --tw-prose-td-borders: var(--line);
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header,
+  .no-print,
+  button,
+  a[href="/plan"] {
+    display: none !important;
+  }
+  .prose-ideforge {
+    --tw-prose-body: black !important;
+    --tw-prose-headings: black !important;
+    --tw-prose-bold: black !important;
+    --tw-prose-code: #111 !important;
+    --tw-prose-quotes: #333 !important;
+    --tw-prose-quote-borders: #ccc !important;
+    --tw-prose-hr: #ccc !important;
+    color: black !important;
+  }
+  .print-content {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

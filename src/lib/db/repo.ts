@@ -1,0 +1,78 @@
+import { eq } from "drizzle-orm";
+import { db } from "./index";
+import { plans, type PlanRow } from "./schema";
+import type { Plan } from "@/lib/types";
+
+function genId(): string {
+  return `pln_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function rowToPlan(row: PlanRow): Plan {
+  return {
+    id: row.id,
+    ideaText: row.ideaText,
+    language: row.language,
+    techMode: row.techMode,
+    techChoice: row.techChoice,
+    questions: row.questions,
+    answers: row.answers,
+    structure: row.structure,
+    prd: row.prd,
+    tasks: row.tasks,
+    landingOptions: row.landingOptions,
+    selectedLandingId: row.selectedLandingId,
+    finalPrompt: row.finalPrompt,
+    currentStep: row.currentStep,
+    userEmail: row.userEmail,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export async function createPlan(ideaText: string, language: string, userEmail?: string | null): Promise<Plan> {
+  const now = new Date().toISOString();
+  const row: typeof plans.$inferInsert = {
+    id: genId(),
+    ideaText,
+    language,
+    userEmail: userEmail || null,
+    currentStep: "tech",
+    createdAt: now,
+    updatedAt: now,
+  };
+  await db.insert(plans).values(row).run();
+  return rowToPlan({ ...row, techMode: null, techChoice: null, questions: null, answers: null, structure: null, prd: null, tasks: null, landingOptions: null, selectedLandingId: null, finalPrompt: null } as PlanRow);
+}
+
+export async function getPlan(id: string): Promise<Plan | null> {
+  const row = await db.select().from(plans).where(eq(plans.id, id)).get();
+  return row ? rowToPlan(row) : null;
+}
+
+export async function listPlansByUser(userEmail: string): Promise<Plan[]> {
+  const rows = await db.select().from(plans).where(eq(plans.userEmail, userEmail)).all();
+  return rows
+    .map(rowToPlan)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export async function listPlans(): Promise<Plan[]> {
+  const rows = await db.select().from(plans).all();
+  return rows
+    .map(rowToPlan)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export async function updatePlan(id: string, patch: Partial<Omit<PlanRow, "id" | "createdAt">>): Promise<Plan | null> {
+  const now = new Date().toISOString();
+  await db.update(plans)
+    .set({ ...patch, updatedAt: now })
+    .where(eq(plans.id, id))
+    .run();
+  return getPlan(id);
+}
+
+export async function deletePlan(id: string): Promise<boolean> {
+  const res = await db.delete(plans).where(eq(plans.id, id)).run();
+  return res.rowsAffected > 0;
+}
