@@ -26,7 +26,7 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1">
-        <section className="relative overflow-hidden px-6 pb-48 pt-24 sm:pb-56 sm:pt-32">
+        <section className="relative overflow-hidden px-6 pb-64 pt-24 sm:pb-72 sm:pt-32">
           <div className="blueprint-grid pointer-events-none absolute inset-0" />
           <div className="relative z-10 mx-auto max-w-3xl text-center">
             <span className="inline-block rounded-full border border-signal/30 bg-signal-dim px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-signal">

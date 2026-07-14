@@ -37,7 +37,7 @@ export function HeroMindmap() {
   });
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-12 px-4">
+    <div className="w-full max-w-3xl mx-auto mt-20 px-4">
       <svg
         viewBox="0 0 580 220"
         className="w-full h-auto overflow-visible"
