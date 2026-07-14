@@ -90,7 +90,7 @@ export function StepperHeader({ planId }: { planId?: string }) {
       localStorage.setItem("ai_api_key", tempKey.trim());
       setLocalKey(tempKey.trim());
     } else {
-      localStorage.removeItem("gemini_api_key");
+      localStorage.removeItem("ai_api_key");
       setLocalKey("");
     }
     setShowInput(false);

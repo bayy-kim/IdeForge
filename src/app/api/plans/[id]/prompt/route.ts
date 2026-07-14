@@ -39,6 +39,7 @@ export async function GET(
       plan.prd,
       plan.tasks?.length || 0,
       landingStyle,
+      plan.language || "id",
     );
     const finalPrompt = await generateText(prompt, system, apiKey);
     const updated = await updatePlan(id, { finalPrompt });

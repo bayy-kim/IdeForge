@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { use } from "react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import { StructureFlow } from "@/components/structure/structure-flow";
 import { StepNav } from "@/components/step-nav";
