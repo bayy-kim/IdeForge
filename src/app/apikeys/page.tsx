@@ -36,6 +36,14 @@ export default function ApiKeysPage() {
   const [saved, setSaved] = useState<string | null>(null);
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [testKeyResult, setTestKeyResult] = useState<{ valid: boolean; error?: string; warning?: string } | null>(null);
+  const [hasServerKey, setHasServerKey] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((d) => setHasServerKey(d.hasKey))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const id = session?.user?.email || deviceId;
@@ -156,7 +164,7 @@ export default function ApiKeysPage() {
         <p className="font-semibold text-paper mb-2">Cara pakai:</p>
         <ol className="list-inside list-decimal space-y-1.5">
           <li>Pilih provider AI (Gemini, Claude, atau kustom)</li>
-          <li>Masukkan API key dari provider yang dipilih</li>
+          <li>Masukkan API key dari provider yang dipilih (kosongkan kalau mau pake key default server)</li>
           <li>Klik <strong className="text-paper">Test</strong> buat ngecek valid atau engga</li>
           <li>Data tersimpan otomatis — gak perlu masukin ulang</li>
         </ol>
@@ -164,17 +172,24 @@ export default function ApiKeysPage() {
 
       <div className="mt-8 flex flex-col gap-8">
         {/* AI Provider */}
-        <div className="rounded-xl border border-line bg-ink-raised p-5">
+          <div className="rounded-xl border border-line bg-ink-raised p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-signal" />
               <h2 className="font-display font-semibold text-paper">AI Provider</h2>
             </div>
-            {settings.ai_provider && (
-              <span className="flex items-center gap-1 font-mono text-[10px] text-trace uppercase tracking-wider">
-                <Check className="h-3 w-3" /> Tersimpan
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {hasServerKey && (
+                <span className="flex items-center gap-1 rounded-full border border-trace/30 bg-trace-dim px-2.5 py-0.5 font-mono text-[10px] text-trace">
+                  <Check className="h-3 w-3" /> Default Server
+                </span>
+              )}
+              {settings.ai_provider && (
+                <span className="flex items-center gap-1 font-mono text-[10px] text-trace uppercase tracking-wider">
+                  <Check className="h-3 w-3" /> Tersimpan
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
