@@ -51,29 +51,15 @@ export function HeroMindmap() {
 
           return (
             <g key={f.id}>
-              {/* Glow layer */}
-              <motion.path
-                d={path}
-                stroke={isHovered ? f.color : f.color}
-                strokeWidth={isHovered ? 4 : 2}
-                strokeOpacity={isHovered ? 0.8 : 0.25}
-                fill="none"
-                className="transition-all duration-300"
-                style={{ filter: isHovered ? `drop-shadow(0 0 6px ${f.color})` : "none" }}
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.3 + i * 0.25, ease: "easeInOut" }}
-              />
-              {/* Flowing dash layer */}
               <motion.path
                 d={path}
                 stroke={f.color}
-                strokeWidth={1.5}
-                strokeOpacity={0.6}
-                strokeDasharray="6 8"
+                strokeWidth={isHovered ? 3 : 2}
+                strokeOpacity={isHovered ? 0.9 : 0.5}
+                strokeDasharray="7 9"
                 fill="none"
-                className="animate-dash-flow"
+                className={isHovered ? "animate-dash-flow" : "animate-dash-flow"}
+                style={{ filter: isHovered ? `drop-shadow(0 0 8px ${f.color})` : "none" }}
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
@@ -183,14 +169,14 @@ export function HeroMindmap() {
 
       <style>{`
         @keyframes dash-flow {
-          to { stroke-dashoffset: -28; }
+          to { stroke-dashoffset: -32; }
         }
         .animate-dash-flow {
-          animation: dash-flow 0.8s linear infinite;
+          animation: dash-flow 1.2s linear infinite;
         }
         @keyframes pulse-soft {
           0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
+          50% { opacity: 0.6; }
         }
         .animate-pulse-soft {
           animation: pulse-soft 2s ease-in-out infinite;
