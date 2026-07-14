@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Check, RotateCw } from "lucide-react";
+import { Check, RotateCw, Download, CheckCheck } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import { Button } from "@/components/ui/button";
 import { StepNav } from "@/components/step-nav";
@@ -17,6 +17,7 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
   const [error, setError] = useState<string | null>(null);
   const [advancing, setAdvancing] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [phaseFilter, setPhaseFilter] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +46,48 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
     }
     return [...byFeature.values()].sort((a, b) => a.phase - b.phase);
   }, [plan?.tasks]);
+
+  const phases = useMemo(() => {
+    if (!plan?.tasks) return [];
+    return [...new Set(plan.tasks.map((t) => t.phase))].sort((a, b) => a - b);
+  }, [plan]);
+
+  const filteredGrouped = useMemo(() => {
+    if (phaseFilter === null) return grouped;
+    return grouped.filter((g) => g.phase === phaseFilter);
+  }, [grouped, phaseFilter]);
+
+  async function markAllDone(phase: number, done: boolean) {
+    if (!plan?.tasks) return;
+    const tasksInPhase = plan.tasks.filter((t) => t.phase === phase);
+    setPlan({
+      ...plan,
+      tasks: plan.tasks.map((t) => (t.phase === phase ? { ...t, done } : t)),
+    });
+    for (const t of tasksInPhase) {
+      await apiFetch(`/api/plans/${id}/tasks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId: t.id, done }),
+      });
+    }
+  }
+
+  function exportCsv() {
+    if (!plan?.tasks) return;
+    const rows = [["Feature", "Phase", "Task", "Description", "Status"]];
+    for (const t of plan.tasks) {
+      rows.push([t.featureName, String(t.phase), t.title, t.description, t.done ? "Selesai" : "Belum"]);
+    }
+    const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${plan.structure?.appName || "tasks"}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   async function toggleTask(taskId: string, done: boolean) {
     if (!plan) return;
@@ -108,6 +151,9 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
           </span>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportCsv}>
+            <Download className="h-3.5 w-3.5 mr-1" /> CSV
+          </Button>
           <Button variant="outline" size="sm" onClick={handleRegenerate}>
             <RotateCw className="h-3.5 w-3.5 mr-1" /> Regenerate
           </Button>
@@ -116,12 +162,43 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
 
       {error && <p className="mb-4 text-sm text-danger">{error}</p>}
 
+      <div className="no-print mb-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => setPhaseFilter(null)}
+          className={cn(
+            "rounded-full border px-3 py-1.5 font-mono text-xs transition-colors",
+            phaseFilter === null ? "border-signal bg-signal-dim text-signal" : "border-line text-muted hover:text-paper",
+          )}
+        >
+          Semua
+        </button>
+        {phases.map((p) => (
+          <button
+            key={p}
+            onClick={() => setPhaseFilter(p)}
+            className={cn(
+              "rounded-full border px-3 py-1.5 font-mono text-xs transition-colors",
+              phaseFilter === p ? "border-signal bg-signal-dim text-signal" : "border-line text-muted hover:text-paper",
+            )}
+          >
+            Fase {p}
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-col gap-6">
-        {grouped.map((group) => (
+        {filteredGrouped.map((group) => (
           <div key={group.featureName} className="rounded-xl border border-line bg-ink-raised p-5">
             <div className="mb-3 flex items-center gap-2">
               <Badge variant="signal">Fase {group.phase}</Badge>
               <h2 className="font-display font-semibold text-paper">{group.featureName}</h2>
+              <button
+                onClick={() => markAllDone(group.phase, true)}
+                className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-[10px] text-trace transition-colors hover:bg-ink-raised-2 hover:text-paper"
+                title="Tandai semua selesai"
+              >
+                <CheckCheck className="h-3 w-3" /> semua
+              </button>
             </div>
             <ul className="flex flex-col gap-2">
               {group.tasks.map((t) => (

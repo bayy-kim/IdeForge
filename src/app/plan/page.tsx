@@ -4,15 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Loader2, History, BarChart3, Key } from "lucide-react";
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import { Textarea } from "@/components/ui/textarea";
+import { LoginPopover } from "@/components/login-popover";
 
 const PLACEHOLDER =
   'Contoh: "Aplikasi pencatat pengeluaran harian, bisa input lewat WhatsApp, ada dashboard ringkasan bulanan..."';
 
 export default function PlanLandingPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [ideaText, setIdeaText] = useState("");
-  const [language, setLanguage] = useState("id");
+  const [language, setLanguage] = useState("en");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<{ todayUsage: number; remaining: number } | null>(null);
@@ -26,9 +29,10 @@ export default function PlanLandingPage() {
 
   async function handleSubmit() {
     if (ideaText.trim().length < 8) {
-      setError(language === "id" 
-        ? "Ceritain sedikit lebih detail ya, minimal satu kalimat."
-        : "Please describe it with a bit more detail, at least one sentence."
+      setError(
+        language === "en"
+          ? "Please describe it with a bit more detail, at least one sentence."
+          : "Ceritain sedikit lebih detail ya, minimal satu kalimat.",
       );
       return;
     }
@@ -50,104 +54,132 @@ export default function PlanLandingPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center px-6">
-      <div className="blueprint-grid pointer-events-none absolute inset-0" />
-
-      <div className="relative z-10 w-full max-w-2xl">
-        <div className="mb-10 text-center">
-          <span className="font-mono text-xs uppercase tracking-[0.2em] text-trace">
-            ideforge
-          </span>
-          <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-paper sm:text-5xl">
-            {language === "id" ? "Mau bikin apa?" : "What do you want to build?"}
-          </h1>
-          <p className="mt-3 text-muted">
-            {language === "id"
-              ? "Ceritain idemu, biar AI bantu susun jadi tech stack, PRD, dan task yang siap dikerjakan."
-              : "Tell us your idea, and AI will map it into a tech stack, PRD, and actionable tasks."}
-          </p>
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-50 border-b border-line bg-ink/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <Link href="/" className="font-display text-lg font-bold tracking-tight text-paper">
+            idē<span className="text-signal">forge</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            {session?.user?.email ? (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Link
+                  href="/history"
+                  className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper sm:px-3"
+                >
+                  <History className="h-3.5 w-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Riwayat</span>
+                </Link>
+                <Link
+                  href="/apikeys"
+                  className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper sm:px-3"
+                >
+                  <Key className="h-3.5 w-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Pengaturan</span>
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-danger/40 hover:text-danger sm:px-3"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <LoginPopover />
+            )}
+          </div>
         </div>
+      </header>
 
-        <div className="rounded-2xl border border-line bg-ink-raised p-2 shadow-[0_0_0_1px_rgba(0,0,0,0.2)]">
-          <Textarea
-            value={ideaText}
-            id="idea-text"
-            name="idea-text"
-            onChange={(e) => setIdeaText(e.target.value)}
-            placeholder={language === "id" ? PLACEHOLDER : 'Example: "Daily expense tracker app, can input via WhatsApp, with monthly dashboard..."'}
-            rows={5}
-            className="border-none bg-transparent px-4 py-4 text-base focus-visible:ring-0"
-            disabled={loading}
-          />
-          <div className="flex items-center justify-between px-3 pb-1">
-            <div className="flex items-center gap-1.5">
+      <main className="relative flex flex-1 flex-col items-center justify-center px-6">
+        <div className="blueprint-grid pointer-events-none absolute inset-0" />
+
+        <div className="relative z-10 w-full max-w-2xl">
+          <div className="mb-10 text-center">
+            <span className="font-mono text-xs uppercase tracking-[0.2em] text-trace">
+              ideforge
+            </span>
+            <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-paper sm:text-5xl">
+              {language === "en" ? "What do you want to build?" : "Mau bikin apa?"}
+            </h1>
+            <p className="mt-3 text-muted">
+              {language === "en"
+                ? "Tell us your idea, and AI will map it into a tech stack, PRD, and actionable tasks."
+                : "Ceritain idemu, biar AI bantu susun jadi tech stack, PRD, dan task yang siap dikerjakan."}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-line bg-ink-raised p-2 shadow-[0_0_0_1px_rgba(0,0,0,0.2)]">
+            <Textarea
+              value={ideaText}
+              id="idea-text"
+              name="idea-text"
+              onChange={(e) => setIdeaText(e.target.value)}
+              placeholder={language === "en" ? 'Example: "Daily expense tracker app, can input via WhatsApp, with monthly dashboard..."' : PLACEHOLDER}
+              rows={5}
+              className="border-none bg-transparent px-4 py-4 text-base focus-visible:ring-0"
+              disabled={loading}
+            />
+            <div className="flex items-center justify-between px-3 pb-1">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setLanguage("id")}
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-mono border ${
+                    language === "id"
+                      ? "border-signal text-signal bg-signal-dim"
+                      : "border-line text-muted hover:text-paper"
+                  }`}
+                >
+                  Indonesia
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage("en")}
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-mono border ${
+                    language === "en"
+                      ? "border-signal text-signal bg-signal-dim"
+                      : "border-line text-muted hover:text-paper"
+                  }`}
+                >
+                  English
+                </button>
+              </div>
               <button
-                type="button"
-                onClick={() => setLanguage("id")}
-                className={`rounded-full px-2.5 py-0.5 text-[10px] font-mono border ${
-                  language === "id"
-                    ? "border-signal text-signal bg-signal-dim"
-                    : "border-line text-muted hover:text-paper"
-                }`}
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex h-11 w-11 items-center justify-center rounded-lg bg-signal text-ink transition-colors hover:bg-[#bef264] disabled:opacity-50"
+                aria-label="Buat plan"
               >
-                Bahasa Indonesia
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage("en")}
-                className={`rounded-full px-2.5 py-0.5 text-[10px] font-mono border ${
-                  language === "en"
-                    ? "border-signal text-signal bg-signal-dim"
-                    : "border-line text-muted hover:text-paper"
-                }`}
-              >
-                English
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <ArrowUp className="h-5 w-5" />
+                )}
               </button>
             </div>
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="flex h-11 w-11 items-center justify-center rounded-lg bg-signal text-ink transition-colors hover:bg-[#ff7d54] disabled:opacity-50"
-              aria-label="Buat plan"
-            >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <ArrowUp className="h-5 w-5" />
-              )}
-            </button>
           </div>
-        </div>
 
-        {error && <p className="mt-3 text-center text-sm text-danger">{error}</p>}
+          {error && <p className="mt-3 text-center text-sm text-danger">{error}</p>}
 
-        {usage && (
-          <div className="mt-6 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-wider text-trace">
-            <BarChart3 className="h-3 w-3" />
-            <span>Hari ini: {usage.todayUsage} request AI &middot; Sisa ~{usage.remaining} prompt</span>
-          </div>
-        )}
+          {usage && (
+            <div className="mt-6 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-wider text-trace">
+              <BarChart3 className="h-3 w-3" />
+              <span>Hari ini: {usage.todayUsage} request AI &middot; Sisa ~{usage.remaining} prompt</span>
+            </div>
+          )}
 
           <div className="mt-8 flex justify-center">
-          <Link
-            href="/apikeys"
-            className="flex items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-paper"
-          >
-            <Key className="h-3.5 w-3.5" />
-            Pengaturan API & Database
-          </Link>
+            <Link
+              href="/history"
+              className="flex items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-paper"
+            >
+              <History className="h-3.5 w-3.5" />
+              Riwayat rencana
+            </Link>
+          </div>
         </div>
-
-        <div className="mt-4 flex justify-center">
-          <Link
-            href="/history"
-            className="flex items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-paper"
-          >
-            <History className="h-3.5 w-3.5" />
-            Riwayat rencana
-          </Link>
-        </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

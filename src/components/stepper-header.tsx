@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn, apiFetch } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { Key, GitBranch, X, Loader2, Check, ExternalLink } from "lucide-react";
+import { Key, GitBranch, X, Loader2, Check, ExternalLink, Download } from "lucide-react";
 
 const STAGES = [
+  { key: "plan", label: "Plan" },
   { key: "tech", label: "Tech" },
   { key: "questions", label: "Q&A" },
   { key: "struktur", label: "Struktur" },
@@ -104,12 +105,12 @@ export function StepperHeader({ planId }: { planId?: string }) {
           idē<span className="text-signal">forge</span>
         </Link>
 
-        <nav className="hidden items-center gap-1.5 sm:flex">
+        <nav className="flex items-center gap-1.5 overflow-x-auto scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none]">
           {STAGES.map((stage, i) => {
             const done = i < activeIndex;
             const isActive = i === activeIndex;
             return (
-              <div key={stage.key} className="flex items-center gap-1.5">
+              <div key={stage.key} className="flex items-center gap-1.5 shrink-0">
                 <div className="flex items-center gap-1.5">
                   <span
                     className={cn(
@@ -129,11 +130,11 @@ export function StepperHeader({ planId }: { planId?: string }) {
                   </span>
                 </div>
                 {i < STAGES.length - 1 && (
-                  <svg width="20" height="2" className="shrink-0">
+                  <svg width="16" height="2" className="shrink-0">
                     <line
                       x1="0"
                       y1="1"
-                      x2="20"
+                      x2="16"
                       y2="1"
                       stroke={done ? "var(--trace)" : "var(--line)"}
                       strokeWidth="2"
@@ -185,7 +186,7 @@ export function StepperHeader({ planId }: { planId?: string }) {
                   />
                   <button
                     onClick={saveKey}
-                    className="rounded bg-signal px-3 text-xs font-semibold text-ink hover:bg-[#ff7d54]"
+                    className="rounded bg-signal px-3 text-xs font-semibold text-ink hover:bg-[#bef264]"
                   >
                     Simpan
                   </button>
@@ -202,6 +203,14 @@ export function StepperHeader({ planId }: { planId?: string }) {
 
           {planId && (
             <>
+              <a
+                href={`/api/plans/${planId}/download`}
+                className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs font-mono text-muted transition-colors hover:text-paper"
+                title="Download ZIP Project"
+              >
+                <Download className="h-3 w-3" />
+                <span className="hidden sm:inline">Download</span>
+              </a>
               <div className="relative">
                 <button
                   onClick={() => setShowGithub(!showGithub)}
@@ -281,14 +290,14 @@ export function StepperHeader({ planId }: { planId?: string }) {
                           <button
                             onClick={handleGithubPush}
                             disabled={githubPushing}
-                            className="flex items-center justify-center gap-1.5 rounded bg-signal px-3 py-1.5 text-xs font-semibold text-ink hover:bg-[#ff7d54] disabled:opacity-40"
+                            className="flex items-center justify-center gap-1.5 rounded bg-signal px-3 py-1.5 text-xs font-semibold text-ink hover:bg-[#bef264] disabled:opacity-40"
                           >
                             {githubPushing ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             ) : (
                               <GitBranch className="h-3.5 w-3.5" />
                             )}
-                            {githubPushing ? "Mempush..." : "Push Project"}
+                            {githubPushing ? "Pushing..." : "Push Project"}
                           </button>
                         </div>
                         <p className="mt-2 text-[10px] text-muted leading-relaxed">
@@ -305,7 +314,7 @@ export function StepperHeader({ planId }: { planId?: string }) {
                 href="/plan"
                 className="font-mono text-xs text-muted transition-colors hover:text-paper shrink-0"
               >
-                + plan baru
+                + new plan
               </Link>
             </>
           )}

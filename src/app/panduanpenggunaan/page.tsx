@@ -196,7 +196,7 @@ CREATE TABLE categories (
       <div className="mt-12 text-center">
         <Link
           href="/plan"
-          className="inline-flex items-center gap-2 rounded-xl bg-signal px-6 py-3 font-display text-sm font-semibold text-ink transition-colors hover:bg-[#ff7d54]"
+          className="inline-flex items-center gap-2 rounded-xl bg-signal px-6 py-3 font-display text-sm font-semibold text-ink transition-colors hover:bg-[#bef264]"
         >
           <BookOpen className="h-4 w-4" /> Mulai Buat Rencana
         </Link>

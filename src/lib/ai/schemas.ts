@@ -26,6 +26,7 @@ export const questionsSchema = {
           options: { type: "ARRAY", items: { type: "STRING" } },
           allowCustom: { type: "BOOLEAN" },
           required: { type: "BOOLEAN" },
+          multi: { type: "BOOLEAN" },
         },
         required: ["id", "question", "type", "required"],
       },

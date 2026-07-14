@@ -48,6 +48,7 @@ Make questions SPECIFIC to the idea — drill into details that would significan
 For each question, determine:
 - type "choice" if the answer is naturally a brief option (create 3-4 sensible "options" for this context, and set allowCustom to true just in case)
 - type "text" if it needs a free-form/descriptive answer
+- For choice questions: if the user should be able to pick MULTIPLE options (not just one), set multi to true. For example, "Which platforms do you want to support?" could have multi:true because users may select both Web and Mobile.
 - required: true if this question MUST be answered before proceeding (information critical to app architecture), false if optional
 
 id must be unique, brief, in snake_case, and reflect the question content (not a generic name like "question_1").
@@ -66,6 +67,7 @@ Buat pertanyaan SPESIFIK untuk ide ini — gali detail yang akan signifikan memp
 Untuk tiap pertanyaan, tentukan sendiri:
 - type "choice" kalau jawabannya wajar berupa pilihan singkat (buat 3-4 "options" yang masuk akal untuk konteks ide ini, dan set allowCustom true untuk jaga-jaga)
 - type "text" kalau butuh jawaban bebas/deskriptif
+- Untuk pertanyaan choice: jika user harus bisa memilih LEBIH DARI SATU opsi (bukan hanya satu), set multi ke true. Contoh: "Platform apa yang ingin didukung?" bisa multi:true karena user mungkin pilih Web dan Mobile sekaligus.
 - required: true kalau pertanyaan ini WAJIB dijawab sebelum lanjut (informasi penting untuk arsitektur aplikasi), false kalau opsional/boleh dilewati
 
 id harus unik, singkat, format snake_case, dan mencerminkan isi pertanyaan (bukan nama generik seperti "question_1").
@@ -193,6 +195,59 @@ Tulis PRD dengan struktur Markdown berikut (pakai heading ##):
 ## 6. Metrik Keberhasilan
 
 Tulis dengan bahasa profesional tapi ringkas, fokus ke hal yang actionable, bukan filler.`;
+
+  return { system, prompt };
+}
+
+export function folderStructurePrompt(
+  structure: { appName: string; summary: string; features: { name: string; phase: number; subFeatures: { name: string }[] }[] },
+  techChoice: TechChoice | null,
+  lang: string = "id",
+) {
+  const system = lang === "en"
+    ? "You are a senior software architect. Generate a practical project folder structure as Markdown."
+    : "Kamu adalah arsitek software senior. Buatlah struktur folder project yang praktis dalam format Markdown.";
+
+  const featuresBlock = structure.features
+    .map(
+      (f) =>
+        lang === "en"
+          ? `- [Phase ${f.phase}] ${f.name}: ${f.subFeatures.map((s) => s.name).join(", ")}`
+          : `- [Fase ${f.phase}] ${f.name}: ${f.subFeatures.map((s) => s.name).join(", ")}`
+    )
+    .join("\n");
+
+  const prompt = lang === "en"
+    ? `App: ${structure.appName}
+Summary: ${structure.summary}
+Tech Stack: ${techChoice ? `${techChoice.frontend}, ${techChoice.backend}, ${techChoice.database}` : "not determined"}
+Features:
+${featuresBlock}
+
+Based on the app above, generate a practical and detailed PROJECT FOLDER STRUCTURE AND PROGRAM ARCHITECTURE in Markdown format with two sections:
+
+## Program Architecture
+Describe the overall architecture (e.g. monolithic, modular, microservices), main layers/modules, and how data flows between components. Mention the tech stack decisions. 2-3 paragraphs.
+
+## Folder Structure
+Generate a complete recommended folder/file tree for a production project. Use Markdown code block with tree-like indentation. Include folders for: configuration, source code (frontend + backend if separate), database/migrations, tests, documentation, and deployment. Be specific — include actual likely file names (e.g. "src/app/page.tsx", "src/lib/db/schema.ts") based on the tech stack. Around 30-50 lines of tree.
+
+Write in clear English, focus on practicality for a real project.`
+    : `Aplikasi: ${structure.appName}
+Ringkasan: ${structure.summary}
+Tech stack: ${techChoice ? `${techChoice.frontend}, ${techChoice.backend}, ${techChoice.database}` : "belum ditentukan"}
+Fitur:
+${featuresBlock}
+
+Berdasarkan aplikasi di atas, buat STRUKTUR FOLDER PROJECT DAN ARSITEKTUR PROGRAM yang praktis dan detail dalam format Markdown dengan dua bagian:
+
+## Arsitektur Program
+Deskripsikan arsitektur keseluruhan (misal: monolitik, modular, microservices), layer/modul utama, dan bagaimana data mengalir antar komponen. Sebutkan keputusan tech stack. 2-3 paragraf.
+
+## Struktur Folder
+Generate struktur folder/file lengkap yang direkomendasikan untuk project produksi. Gunakan Markdown code block dengan indentasi seperti tree. Sertakan folder untuk: konfigurasi, source code (frontend + backend jika terpisah), database/migrations, test, dokumentasi, dan deployment. Spesifik — sertakan nama file yang mungkin benar-benar ada (misal "src/app/page.tsx", "src/lib/db/schema.ts") berdasarkan tech stack. Sekitar 30-50 baris tree.
+
+Tulis dalam Bahasa Indonesia yang jelas, fokus pada kepraktisan untuk project nyata.`;
 
   return { system, prompt };
 }
@@ -347,6 +402,82 @@ Prompt yang kamu hasilkan HARUS mencakup, secara berurutan:
 5. Penutup singkat yang menegaskan AI coding assistant harus konfirmasi ke user sebelum mengasumsikan hal-hal besar yang belum jelas dari PRD
 
 Format output sebagai teks prompt biasa (bukan JSON, bukan markdown code block pembungkus), siap copy-paste, panjang sekitar 300-450 kata.`;
+
+  return { system, prompt };
+}
+
+export function requiredSkillsPrompt(
+  plan: { ideaText: string; prd: string; folderStructure: string | null; structure: { appName: string; summary: string } },
+  techChoice: TechChoice | null,
+  lang: string = "id",
+) {
+  const system = lang === "en"
+    ? "You are a senior developer environment expert. Based on the project requirements below, list all tools, runtimes, SDKs, libraries, and dependencies that must be installed before development can begin. Be specific with versions."
+    : "Kamu adalah ahli environment developer senior. Berdasarkan requirement proyek di bawah, daftarkan semua tools, runtime, SDK, library, dan dependensi yang HARUS di-download/diinstall sebelum development bisa dimulai. Sebut versi spesifik.";
+
+  const prompt = lang === "en"
+    ? `App: ${plan.structure.appName}
+Summary: ${plan.structure.summary}
+Tech Stack: ${techChoice ? `${techChoice.frontend}, ${techChoice.backend}, ${techChoice.database}` : "not determined"}
+${plan.folderStructure ? `\nFolder Structure:\n${plan.folderStructure}` : ""}
+
+Full PRD:
+"""
+${plan.prd}
+"""
+
+Analyze the project above thoroughly, then generate a complete "Required Skills & Environment Setup" checklist in Markdown format with these sections:
+
+## Runtime & Core Dependencies
+List every runtime (Node.js, Python, Go, etc.), database (PostgreSQL, SQLite, etc.), and system tool (Git, Docker, etc.) with specific minimum versions. Include installation commands (e.g. "brew install postgresql@16", "nvm install 20").
+
+## Frontend Dependencies
+All npm/pip packages for the frontend with versions (e.g. "react@19", "next@15", "tailwindcss@4").
+
+## Backend Dependencies
+All packages/libraries for the backend with versions.
+
+## VS Code Extensions (Recommended)
+3-5 relevant extensions that help with this specific tech stack.
+
+## Environment Variables
+List all env vars that need to be configured (e.g. DATABASE_URL, API_KEY).
+
+## Initial Setup Steps
+Numbered steps to clone, install, configure, and run the project for the first time.
+
+Write in clear English, be practical and specific.`
+    : `Aplikasi: ${plan.structure.appName}
+Ringkasan: ${plan.structure.summary}
+Tech stack: ${techChoice ? `${techChoice.frontend}, ${techChoice.backend}, ${techChoice.database}` : "belum ditentukan"}
+${plan.folderStructure ? `\nStruktur Folder:\n${plan.folderStructure}` : ""}
+
+PRD lengkap:
+"""
+${plan.prd}
+"""
+
+Analisis proyek di atas secara menyeluruh, lalu buat daftar lengkap "Persiapan Environment & Skill yang Dibutuhkan" dalam format Markdown dengan bagian-bagian ini:
+
+## Runtime & Dependensi Utama
+Daftar semua runtime (Node.js, Python, Go, dll), database (PostgreSQL, SQLite, dll), dan system tool (Git, Docker, dll) dengan versi minimum spesifik. Sertakan perintah installasi (contoh: "brew install postgresql@16", "nvm install 20").
+
+## Dependensi Frontend
+Semua package npm/pip untuk frontend dengan versinya (contoh: "react@19", "next@15", "tailwindcss@4").
+
+## Dependensi Backend
+Semua package/library untuk backend dengan versinya.
+
+## Ekstensi VS Code (Rekomendasi)
+3-5 ekstensi relevan yang membantu untuk tech stack ini.
+
+## Variable Environment
+Daftar semua env var yang perlu dikonfigurasi (contoh: DATABASE_URL, API_KEY).
+
+## Langkah Setup Awal
+Langkah bernomor untuk clone, install, konfigurasi, dan menjalankan project pertama kali.
+
+Tulis dalam Bahasa Indonesia yang jelas, praktis, dan spesifik.`;
 
   return { system, prompt };
 }

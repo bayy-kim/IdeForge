@@ -18,10 +18,12 @@ function rowToPlan(row: PlanRow): Plan {
     answers: row.answers,
     structure: row.structure,
     prd: row.prd,
+    folderStructure: row.folderStructure,
     tasks: row.tasks,
     landingOptions: row.landingOptions,
     selectedLandingId: row.selectedLandingId,
     finalPrompt: row.finalPrompt,
+    requiredSkills: row.requiredSkills,
     currentStep: row.currentStep,
     userEmail: row.userEmail,
     createdAt: row.createdAt,
@@ -42,7 +44,7 @@ export async function createPlan(ideaText: string, language: string, userEmail?:
     updatedAt: now,
   };
   await db.insert(plans).values(row).run();
-  return rowToPlan({ ...row, techMode: null, techChoice: null, questions: null, answers: null, structure: null, prd: null, tasks: null, landingOptions: null, selectedLandingId: null, finalPrompt: null } as PlanRow);
+  return rowToPlan({ ...row, techMode: null, techChoice: null, questions: null, answers: null, structure: null, prd: null, folderStructure: null, tasks: null, landingOptions: null, selectedLandingId: null, finalPrompt: null, requiredSkills: null } as PlanRow);
 }
 
 export async function getPlan(id: string): Promise<Plan | null> {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateText, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
-import { finalPromptCompilePrompt } from "@/lib/ai/prompts";
+import { finalPromptCompilePrompt, requiredSkillsPrompt } from "@/lib/ai/prompts";
 
 export async function GET(
   req: NextRequest,
@@ -42,7 +42,25 @@ export async function GET(
       plan.language || "id",
     );
     const finalPrompt = await generateText(prompt, system, apiKey);
-    const updated = await updatePlan(id, { finalPrompt });
+
+    let requiredSkills: string | null = null;
+    try {
+      const { system: rsSystem, prompt: rsPrompt } = requiredSkillsPrompt(
+        {
+          ideaText: plan.ideaText,
+          prd: plan.prd,
+          folderStructure: plan.folderStructure,
+          structure: plan.structure,
+        },
+        plan.techChoice,
+        plan.language || "id",
+      );
+      requiredSkills = await generateText(rsPrompt, rsSystem, apiKey);
+    } catch {
+      requiredSkills = null;
+    }
+
+    const updated = await updatePlan(id, { finalPrompt, requiredSkills });
     return NextResponse.json({ plan: updated });
   } catch (err) {
     if (err instanceof GeminiConfigError) {

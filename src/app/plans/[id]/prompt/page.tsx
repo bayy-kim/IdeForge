@@ -1,18 +1,24 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import Link from "next/link";
-import { Copy, Check, PartyPopper, ChevronLeft, Download } from "lucide-react";
+import { Copy, Check, PartyPopper, ChevronLeft, Download, Wrench } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
-import { apiFetch } from "@/lib/utils";
+import { cn, apiFetch } from "@/lib/utils";
 import type { Plan } from "@/lib/types";
+
+type Tab = "prompt" | "skills";
 
 export default function PromptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("prompt");
 
   function downloadMd() {
     if (!plan?.finalPrompt) return;
@@ -40,11 +46,41 @@ export default function PromptPage({ params }: { params: Promise<{ id: string }>
     };
   }, [id]);
 
+  const sections = useMemo(() => {
+    if (!plan?.finalPrompt) return [];
+    const lines = plan.finalPrompt.split("\n");
+    const result: { heading: string; content: string }[] = [];
+    let currentHeading = "Pendahuluan";
+    let currentLines: string[] = [];
+    for (const line of lines) {
+      const match = line.match(/^##\s+(.+)/);
+      if (match) {
+        if (currentLines.length) {
+          result.push({ heading: currentHeading, content: currentLines.join("\n") });
+        }
+        currentHeading = match[1];
+        currentLines = [line];
+      } else {
+        currentLines.push(line);
+      }
+    }
+    if (currentLines.length) {
+      result.push({ heading: currentHeading, content: currentLines.join("\n") });
+    }
+    return result;
+  }, [plan]);
+
   async function copy() {
     if (!plan?.finalPrompt) return;
     await navigator.clipboard.writeText(plan.finalPrompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function copySection(content: string, heading: string) {
+    await navigator.clipboard.writeText(content);
+    setCopiedSection(heading);
+    setTimeout(() => setCopiedSection(null), 2000);
   }
 
   if (error) {
@@ -74,21 +110,87 @@ export default function PromptPage({ params }: { params: Promise<{ id: string }>
         membangun <strong className="text-paper">{plan.structure?.appName}</strong>.
       </p>
 
-      <div className="relative rounded-xl border border-line bg-ink-raised-2 p-6 font-mono text-sm leading-relaxed text-paper">
-        <pre className="whitespace-pre-wrap">{plan.finalPrompt}</pre>
-        <div className="absolute right-4 top-4 flex gap-2">
-          <Button variant="secondary" size="sm" onClick={downloadMd}>
-            <Download className="h-3.5 w-3.5 mr-1" /> .md
-          </Button>
-          <Button variant="secondary" size="sm" onClick={copy}>
-            {copied ? (
-              <><Check className="h-3.5 w-3.5 text-trace" /> Disalin</>
-            ) : (
-              <><Copy className="h-3.5 w-3.5" /> Salin</>
-            )}
-          </Button>
-        </div>
+      <div className="no-print mb-4 flex gap-1 rounded-lg border border-line bg-ink-raised p-1">
+        <button
+          onClick={() => setActiveTab("prompt")}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            activeTab === "prompt" ? "bg-signal text-ink" : "text-muted hover:text-paper",
+          )}
+        >
+          <Copy className="h-4 w-4" /> Prompt
+        </button>
+        <button
+          onClick={() => setActiveTab("skills")}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            activeTab === "skills" ? "bg-signal text-ink" : "text-muted hover:text-paper",
+          )}
+        >
+          <Wrench className="h-4 w-4" /> Persiapan & Skill
+        </button>
       </div>
+
+      {activeTab === "prompt" && (
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" size="sm" onClick={downloadMd}>
+              <Download className="h-3.5 w-3.5 mr-1" /> .md
+            </Button>
+            <Button variant="secondary" size="sm" onClick={copy}>
+              {copied ? (
+                <><Check className="h-3.5 w-3.5 text-trace" /> Disalin</>
+              ) : (
+                <><Copy className="h-3.5 w-3.5" /> Salin semua</>
+              )}
+            </Button>
+          </div>
+          {sections.map((sec) => (
+            <div key={sec.heading} className="relative rounded-xl border border-line bg-ink-raised-2 p-5">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="font-display text-sm font-semibold text-paper">
+                  {sec.heading.startsWith("##") ? sec.heading : `## ${sec.heading}`}
+                </p>
+                <button
+                  onClick={() => copySection(sec.content, sec.heading)}
+                  className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 font-mono text-[10px] text-trace transition-colors hover:bg-ink-raised hover:text-paper"
+                >
+                  {copiedSection === sec.heading ? (
+                    <><Check className="h-3 w-3" /> Disalin</>
+                  ) : (
+                    <><Copy className="h-3 w-3" /> Salin bagian</>
+                  )}
+                </button>
+              </div>
+              <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-paper">
+                {sec.content}
+              </pre>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === "skills" && (
+        <div className="rounded-xl border border-line bg-ink-raised p-8">
+          {plan.requiredSkills ? (
+            <>
+              <div className="mb-4 flex items-center gap-2 text-trace">
+                <Wrench className="h-4 w-4" />
+                <p className="text-xs font-mono font-medium uppercase tracking-wider">
+                  Analisis dari PRD &mdash; download & install dulu sebelum mulai coding
+                </p>
+              </div>
+              <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.requiredSkills}</ReactMarkdown>
+              </article>
+            </>
+          ) : (
+            <p className="text-sm text-muted text-center py-12">
+              Daftar skill & dependensi akan dibuat otomatis setelah prompt selesai di-generate.
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="mt-8 flex justify-center">
         <Link

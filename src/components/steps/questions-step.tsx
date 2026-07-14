@@ -181,20 +181,34 @@ export function QuestionsStep({
                   ) : (
                     <div>
                       <div className="flex flex-wrap gap-2">
-                        {(q.options || []).map((opt) => (
-                          <button
-                            key={opt}
-                            onClick={() => setAnswer(q.id, { answer: opt, customMode: false })}
-                            className={cn(
-                              "rounded-full border px-4 py-2 text-sm transition-colors",
-                              state.answer === opt && !state.customMode
-                                ? "border-signal bg-signal-dim text-signal"
-                                : "border-line text-paper hover:border-signal/40",
-                            )}
-                          >
-                            {opt}
-                          </button>
-                        ))}
+                        {(q.options || []).map((opt) => {
+                          const selectedOpts = state.answer ? state.answer.split(", ") : [];
+                          const isSelected = selectedOpts.includes(opt);
+                          return (
+                            <button
+                              key={opt}
+                              onClick={() => {
+                                if (q.multi) {
+                                  const current = new Set(selectedOpts);
+                                  if (isSelected) current.delete(opt);
+                                  else current.add(opt);
+                                  const joined = [...current].join(", ");
+                                  setAnswer(q.id, { answer: joined, customMode: false });
+                                } else {
+                                  setAnswer(q.id, { answer: opt, customMode: false });
+                                }
+                              }}
+                              className={cn(
+                                "rounded-full border px-4 py-2 text-sm transition-colors",
+                                isSelected && !state.customMode
+                                  ? "border-signal bg-signal-dim text-signal"
+                                  : "border-line text-paper hover:border-signal/40",
+                              )}
+                            >
+                              {opt}
+                            </button>
+                          );
+                        })}
                         {q.allowCustom && (
                           <button
                             onClick={() => setAnswer(q.id, { customMode: true })}
@@ -209,6 +223,11 @@ export function QuestionsStep({
                           </button>
                         )}
                       </div>
+                      {q.multi && !state.customMode && (
+                        <p className="mt-2 text-[11px] text-trace font-mono">
+                          {state.answer ? `Dipilih: ${state.answer}` : "Pilih satu atau lebih"}
+                        </p>
+                      )}
                       {state.customMode && (
                         <div className="relative mt-3">
                           <Input

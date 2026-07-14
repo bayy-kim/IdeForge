@@ -43,10 +43,12 @@ export function dbReady(): Promise<void> {
           answers TEXT,
           structure TEXT,
           prd TEXT,
+          folder_structure TEXT,
           tasks TEXT,
           landing_options TEXT,
           selected_landing_id TEXT,
           final_prompt TEXT,
+          required_skills TEXT,
           current_step TEXT NOT NULL DEFAULT 'idea',
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
@@ -55,6 +57,8 @@ export function dbReady(): Promise<void> {
       try { await client.execute("ALTER TABLE plans ADD COLUMN landing_options TEXT"); } catch {}
       try { await client.execute("ALTER TABLE plans ADD COLUMN selected_landing_id TEXT"); } catch {}
       try { await client.execute("ALTER TABLE plans ADD COLUMN user_email TEXT"); } catch {}
+      try { await client.execute("ALTER TABLE plans ADD COLUMN folder_structure TEXT"); } catch {}
+      try { await client.execute("ALTER TABLE plans ADD COLUMN required_skills TEXT"); } catch {}
       await client.execute(`
         CREATE TABLE IF NOT EXISTS gemini_usage (
           date TEXT PRIMARY KEY,

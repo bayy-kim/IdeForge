@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateText, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
-import { prdPrompt } from "@/lib/ai/prompts";
+import { prdPrompt, folderStructurePrompt } from "@/lib/ai/prompts";
 
 export async function GET(
   req: NextRequest,
@@ -37,7 +37,20 @@ export async function GET(
       plan.language || "id",
     );
     const prd = await generateText(prompt, system, apiKey);
-    const updated = await updatePlan(id, { prd, currentStep: "landing" });
+
+    let folderStructure: string | null = null;
+    try {
+      const { system: fsSystem, prompt: fsPrompt } = folderStructurePrompt(
+        plan.structure,
+        plan.techChoice,
+        plan.language || "id",
+      );
+      folderStructure = await generateText(fsPrompt, fsSystem, apiKey);
+    } catch {
+      folderStructure = null;
+    }
+
+    const updated = await updatePlan(id, { prd, folderStructure, currentStep: "landing" });
     return NextResponse.json({ plan: updated });
   } catch (err) {
     if (err instanceof GeminiConfigError) {

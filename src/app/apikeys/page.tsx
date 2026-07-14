@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { ArrowLeft, Check, Cpu, LogIn, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { LoginPopover } from "@/components/login-popover";
+import { ArrowLeft, Check, Cpu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -139,12 +140,7 @@ export default function ApiKeysPage() {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => signIn("google")}
-              className="flex items-center gap-1.5 rounded-full border border-signal/40 bg-signal-dim px-3 py-1.5 text-xs font-mono text-signal transition-colors hover:bg-signal-dim/80"
-            >
-              <LogIn className="h-3.5 w-3.5" /> Login dengan Google
-            </button>
+            <LoginPopover />
           )}
         </div>
       </div>

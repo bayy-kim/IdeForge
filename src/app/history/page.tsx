@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession, signIn } from "next-auth/react";
-import { ArrowLeft, FileText, Trash2, LogIn } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { LoginPopover } from "@/components/login-popover";
+import { ArrowLeft, FileText, Trash2 } from "lucide-react";
 import type { Plan } from "@/lib/types";
 
 export default function HistoryPage() {
@@ -50,12 +51,9 @@ export default function HistoryPage() {
         <FileText className="mb-4 h-12 w-12 text-muted" />
         <h1 className="font-display text-xl font-bold text-paper">Riwayat Rencana</h1>
         <p className="mt-2 text-sm text-muted">Login dulu buat lihat riwayat rencana kamu.</p>
-        <button
-          onClick={() => signIn("google")}
-          className="mt-6 inline-flex items-center gap-2 rounded-full border border-signal/40 bg-signal-dim px-5 py-2.5 text-sm font-medium text-signal transition-colors hover:bg-signal-dim/80"
-        >
-          <LogIn className="h-4 w-4" /> Login dengan Google
-        </button>
+        <div className="mt-6">
+          <LoginPopover />
+        </div>
       </main>
     );
   }

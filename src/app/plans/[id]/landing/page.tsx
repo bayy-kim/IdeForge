@@ -2,12 +2,12 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Check, RotateCw, Sparkles } from "lucide-react";
+import { Check, RotateCw, Sparkles, Maximize2, Download, X } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import { Button } from "@/components/ui/button";
 import { StepNav } from "@/components/step-nav";
 import { cn, apiFetch } from "@/lib/utils";
-import type { Plan } from "@/lib/types";
+import type { Plan, LandingOption } from "@/lib/types";
 
 const AVAILABLE_MODELS = [
   { id: "gemini-3-flash-preview", label: "Gemini 3 Flash Preview" },
@@ -24,6 +24,17 @@ export default function LandingPage({ params }: { params: Promise<{ id: string }
   const [advancing, setAdvancing] = useState(false);
   const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
   const [regenerating, setRegenerating] = useState(false);
+  const [previewOption, setPreviewOption] = useState<LandingOption | null>(null);
+
+  function downloadHtml(opt: LandingOption) {
+    const blob = new Blob([opt.html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${plan?.structure?.appName || "landing"}-${opt.styleName.replace(/\s+/g, "-").toLowerCase()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -147,20 +158,71 @@ export default function LandingPage({ params }: { params: Promise<{ id: string }
                 <p className="font-display font-semibold text-paper">{opt.styleName}</p>
                 <p className="mt-1 text-xs text-muted">{opt.styleDescription}</p>
               </div>
-              {selected === opt.id && (
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-signal text-ink">
-                  <Check className="h-3.5 w-3.5" />
-                </span>
-              )}
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setPreviewOption(opt); }}
+                  className="rounded-lg p-1.5 text-muted transition-colors hover:bg-ink-raised-2 hover:text-paper"
+                  title="Preview fullscreen"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); downloadHtml(opt); }}
+                  className="rounded-lg p-1.5 text-muted transition-colors hover:bg-ink-raised-2 hover:text-paper"
+                  title="Download HTML"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+                {selected === opt.id && (
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-signal text-ink">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}
       </div>
 
+      {previewOption && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setPreviewOption(null)}
+        >
+          <div
+            className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-line bg-ink"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-line px-6 py-3">
+              <p className="font-display font-semibold text-paper">{previewOption.styleName}</p>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={() => downloadHtml(previewOption)}>
+                  <Download className="h-3.5 w-3.5 mr-1" /> Download HTML
+                </Button>
+                <button
+                  onClick={() => setPreviewOption(null)}
+                  className="rounded-lg p-1.5 text-muted transition-colors hover:bg-ink-raised hover:text-paper"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto bg-white">
+              <iframe
+                srcDoc={previewOption.html}
+                title={previewOption.styleName}
+                sandbox="allow-scripts"
+                className="h-full w-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <StepNav
         prevLabel="Kembali ke PRD"
         prevHref={`/plans/${id}/prd`}
-        nextLabel="Pilih & Lanjut ke Task"
+        nextLabel="Select & Continue to Task"
         nextDisabled={!selected}
         nextLoading={advancing}
         onNext={confirmAndContinue}

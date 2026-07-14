@@ -15,6 +15,7 @@ export interface ClarifyingQuestion {
   options?: string[];
   allowCustom?: boolean;
   required: boolean;
+  multi?: boolean;
 }
 
 export interface ClarifyingAnswer {
@@ -80,10 +81,12 @@ export interface Plan {
   answers: ClarifyingAnswer[] | null;
   structure: PlanStructure | null;
   prd: string | null;
+  folderStructure: string | null;
   tasks: PlanTask[] | null;
   landingOptions: LandingOption[] | null;
   selectedLandingId: string | null;
   finalPrompt: string | null;
+  requiredSkills: string | null;
   userEmail: string | null;
   currentStep: PlanStep;
   createdAt: string;
