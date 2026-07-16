@@ -62,12 +62,14 @@ export async function resolveAIConfig(req: NextRequest): Promise<AIConfig> {
   const headerKey = req.headers.get("x-gemini-api-key") || null;
   const headerProvider = req.headers.get("x-ai-provider") as AIProvider | null;
   const headerUrl = req.headers.get("x-ai-api-url") || null;
+  const headerModel = req.headers.get("x-gemini-model") || null;
 
   if (headerKey || headerProvider) {
     return {
       provider: headerProvider || "gemini",
       apiKey: headerKey,
       apiUrl: headerUrl,
+      model: headerModel || undefined,
     };
   }
 
@@ -80,9 +82,10 @@ export async function resolveAIConfig(req: NextRequest): Promise<AIConfig> {
       const provider = (userSettings["ai_provider"] as AIProvider) || "gemini";
       const apiKey = userSettings["ai_api_key"] || null;
       const apiUrl = userSettings["ai_api_url"] || null;
+      const model = userSettings["ai_model"] || null;
 
       if (apiKey) {
-        return { provider, apiKey, apiUrl };
+        return { provider, apiKey, apiUrl, model: model || undefined };
       }
     }
   } catch {
@@ -94,5 +97,6 @@ export async function resolveAIConfig(req: NextRequest): Promise<AIConfig> {
     provider: "gemini",
     apiKey: process.env.GEMINI_API_KEY || null,
     apiUrl: null,
+    model: undefined,
   };
 }

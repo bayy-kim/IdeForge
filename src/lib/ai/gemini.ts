@@ -7,6 +7,7 @@
  */
 
 import { incrementUsage } from "@/lib/db/usage";
+import { GEMINI_MODEL_CANDIDATES } from "./models";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,13 +24,6 @@ export class GeminiConfigError extends Error {}
 export class GeminiRequestError extends Error {}
 
 // ─── Gemini ───────────────────────────────────────────────────────────────────
-
-const GEMINI_MODEL_CANDIDATES = [
-  process.env.GEMINI_MODEL,
-  "gemini-2.5-flash",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
-].filter((m): m is string => Boolean(m));
 
 function geminiUrlFor(model: string) {
   return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
@@ -129,9 +123,9 @@ async function callGemini(
   }
 
   throw new GeminiRequestError(
-    `Semua model Gemini di daftar (${GEMINI_MODEL_CANDIDATES.join(", ")}) sudah tidak tersedia` +
-      (lastRetiredModel ? ` (terakhir dicoba: "${lastRetiredModel}")` : "") +
-      `. Cek model aktif terbaru di https://ai.google.dev/gemini-api/docs/models lalu set env GEMINI_MODEL.`,
+    `Semua model Gemini gagal setelah mencoba ${GEMINI_MODEL_CANDIDATES.length} model` +
+      (lastRetiredModel ? ` (terakhir: "${lastRetiredModel}")` : "") +
+      `. Coba ganti model di Tech Step, atau cek di https://ai.google.dev/gemini-api/docs/models lalu set env GEMINI_MODEL.`,
   );
 }
 

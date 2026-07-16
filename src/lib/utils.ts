@@ -17,10 +17,12 @@ export async function apiFetch(url: string, init?: RequestInit): Promise<Respons
     const apiKey = localStorage.getItem("ai_api_key");
     const provider = localStorage.getItem("ai_provider");
     const apiUrl = localStorage.getItem("ai_api_url");
+    const model = localStorage.getItem("ai_model");
 
     if (apiKey) headers.set("x-gemini-api-key", apiKey);
     if (provider) headers.set("x-ai-provider", provider);
     if (apiUrl) headers.set("x-ai-api-url", apiUrl);
+    if (model) headers.set("x-gemini-model", model);
   }
 
   return fetch(url, {

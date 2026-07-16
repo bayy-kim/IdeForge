@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Sparkles, SlidersHorizontal, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sparkles, SlidersHorizontal, Loader2, Cpu } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiFetch } from "@/lib/utils";
+import { SELECTABLE_MODELS, DEFAULT_MODEL } from "@/lib/ai/models";
 import type { TechChoice, TechMode } from "@/lib/types";
 
 export function TechStep({
@@ -19,6 +20,19 @@ export function TechStep({
   const [manual, setManual] = useState<TechChoice>({ frontend: "", backend: "", database: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ai_model") || DEFAULT_MODEL;
+    }
+    return DEFAULT_MODEL;
+  });
+
+  // Persist model selection to localStorage so apiFetch picks it up
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ai_model", selectedModel);
+    }
+  }, [selectedModel]);
 
   async function submit() {
     if (!mode) return;
@@ -74,6 +88,28 @@ export function TechStep({
           <h3 className="mt-3 font-display font-semibold text-paper">Pilih sendiri</h3>
           <p className="mt-1.5 text-sm text-muted">Kamu tentuin teknologi yang mau dipakai.</p>
         </Card>
+      </div>
+
+      {/* Model selector */}
+      <div className="mt-6 rounded-xl border border-line bg-ink-raised p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Cpu className="h-4 w-4 text-trace" />
+          <label className="font-mono text-xs uppercase tracking-wide text-muted">
+            Model Gemini AI
+          </label>
+        </div>
+        <select
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
+          className="w-full rounded border border-line bg-ink px-3 py-2 text-sm text-paper font-mono focus:border-signal focus:outline-none"
+        >
+          {SELECTABLE_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>{m.label}</option>
+          ))}
+        </select>
+        <p className="mt-1.5 text-[11px] text-muted leading-relaxed">
+          Pilih model AI yang akan dipakai buat generate semua konten. Model lebih baru = hasil lebih bagus tapi bisa lebih lambat/kena limit.
+        </p>
       </div>
 
       {mode === "manual" && (

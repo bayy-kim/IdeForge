@@ -8,12 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StepNav } from "@/components/step-nav";
 import { cn, apiFetch } from "@/lib/utils";
 import type { Plan, LandingOption } from "@/lib/types";
-
-const AVAILABLE_MODELS = [
-  { id: "gemini-3-flash-preview", label: "Gemini 3 Flash Preview" },
-  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
-];
+import { SELECTABLE_MODELS, DEFAULT_MODEL } from "@/lib/ai/models";
 
 export default function LandingPage() {
   const { id } = useParams() as { id: string };
@@ -22,7 +17,12 @@ export default function LandingPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [advancing, setAdvancing] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ai_model") || DEFAULT_MODEL;
+    }
+    return DEFAULT_MODEL;
+  });
   const [regenerating, setRegenerating] = useState(false);
   const [previewOption, setPreviewOption] = useState<LandingOption | null>(null);
 
@@ -119,10 +119,10 @@ export default function LandingPage() {
             <Sparkles className="h-3.5 w-3.5 text-trace" />
             <select
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
+              onChange={(e) => { setSelectedModel(e.target.value); localStorage.setItem("ai_model", e.target.value); }}
               className="rounded border border-line bg-ink px-2.5 py-1.5 text-xs text-paper font-mono focus:border-signal focus:outline-none"
             >
-              {AVAILABLE_MODELS.map((m) => (
+              {SELECTABLE_MODELS.map((m) => (
                 <option key={m.id} value={m.id}>{m.label}</option>
               ))}
             </select>
