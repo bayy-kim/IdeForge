@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     if (imported.answers) patch.answers = imported.answers;
     if (imported.structure) patch.structure = imported.structure;
     if (imported.prd) patch.prd = imported.prd;
+    if (imported.srs) patch.srs = imported.srs;
     if (imported.tasks) patch.tasks = imported.tasks;
     if (imported.landingOptions) patch.landingOptions = imported.landingOptions;
     if (imported.selectedLandingId) patch.selectedLandingId = imported.selectedLandingId;

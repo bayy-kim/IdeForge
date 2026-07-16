@@ -11,7 +11,7 @@ import { StepNav } from "@/components/step-nav";
 import { cn, apiFetch } from "@/lib/utils";
 import type { Plan } from "@/lib/types";
 
-type Tab = "prd" | "struktur";
+type Tab = "prd" | "struktur" | "srs";
 
 export default function PrdPage() {
   const { id } = useParams() as { id: string };
@@ -23,6 +23,7 @@ export default function PrdPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrd, setEditedPrd] = useState("");
+  const [editedSrs, setEditedSrs] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [regenerating, setRegenerating] = useState(false);
@@ -30,22 +31,26 @@ export default function PrdPage() {
   const isDirty = useRef(false);
 
   const wordCount = useMemo(() => {
-    const text = isEditing ? editedPrd : (plan?.prd || "");
+    const text = isEditing
+      ? (activeTab === "prd" ? editedPrd : editedSrs)
+      : (activeTab === "prd" ? (plan?.prd || "") : (plan?.srs || ""));
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     return words;
-  }, [isEditing, editedPrd, plan?.prd]);
+  }, [isEditing, editedPrd, editedSrs, plan?.prd, plan?.srs, activeTab]);
 
   const charCount = useMemo(() => {
-    return (isEditing ? editedPrd : (plan?.prd || "")).length;
-  }, [isEditing, editedPrd, plan?.prd]);
+    return (isEditing
+      ? (activeTab === "prd" ? editedPrd : editedSrs)
+      : (activeTab === "prd" ? (plan?.prd || "") : (plan?.srs || ""))).length;
+  }, [isEditing, editedPrd, editedSrs, plan?.prd, plan?.srs, activeTab]);
 
-  const autoSave = useCallback(async (content: string) => {
+  const autoSave = useCallback(async (tab: "prd" | "srs", content: string) => {
     setSaveStatus("saving");
     try {
       const res = await apiFetch(`/api/plans/${id}/prd`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prd: content }),
+        body: JSON.stringify({ [tab]: content }),
       });
       if (!res.ok) throw new Error();
       setSaveStatus("saved");
@@ -65,6 +70,7 @@ export default function PrdPage() {
         else {
           setPlan(data.plan);
           setEditedPrd(data.plan.prd || "");
+          setEditedSrs(data.plan.srs || "");
         }
       })
       .catch(() => !cancelled && setError("Gagal memuat PRD."));
@@ -74,29 +80,31 @@ export default function PrdPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!isEditing) return;
+    if (!isEditing || activeTab === "struktur") return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
       isDirty.current = false;
-      autoSave(editedPrd);
+      autoSave(activeTab as "prd" | "srs", activeTab === "prd" ? editedPrd : editedSrs);
     }, 2000);
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [editedPrd, isEditing, autoSave]);
+  }, [editedPrd, editedSrs, isEditing, activeTab, autoSave]);
 
   function handleEditChange(value: string) {
     isDirty.current = true;
-    setEditedPrd(value);
+    if (activeTab === "prd") setEditedPrd(value);
+    else if (activeTab === "srs") setEditedSrs(value);
   }
 
   function downloadMd() {
-    if (!plan?.prd) return;
-    const blob = new Blob([plan.prd], { type: "text/markdown" });
+    const text = activeTab === "prd" ? plan?.prd : activeTab === "srs" ? plan?.srs : plan?.folderStructure;
+    if (!text) return;
+    const blob = new Blob([text], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${plan.structure?.appName || "prd"}.md`;
+    a.download = `${plan?.structure?.appName || "prd"}-${activeTab}.md`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -106,7 +114,7 @@ export default function PrdPage() {
   }
 
   async function handleRegenerate() {
-    if (!confirm("Apakah Anda yakin ingin men-generate ulang PRD? Hasil edit manual (jika ada) akan hilang.")) return;
+    if (!confirm("Apakah Anda yakin ingin men-generate ulang PRD & SRS? Hasil edit manual (jika ada) akan hilang.")) return;
     setRegenerating(true);
     setError(null);
     try {
@@ -115,6 +123,7 @@ export default function PrdPage() {
       if (!res.ok) throw new Error(data.error || "Gagal melakukan regenerasi.");
       setPlan(data.plan);
       setEditedPrd(data.plan.prd || "");
+      setEditedSrs(data.plan.srs || "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal melakukan regenerasi.");
     } finally {
@@ -125,10 +134,14 @@ export default function PrdPage() {
   async function handleSaveEdit() {
     setSaving(true);
     try {
+      const body: Record<string, string> = {};
+      if (activeTab === "prd") body.prd = editedPrd;
+      if (activeTab === "srs") body.srs = editedSrs;
+
       const res = await apiFetch(`/api/plans/${id}/prd`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prd: editedPrd }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan perubahan.");
@@ -166,9 +179,11 @@ export default function PrdPage() {
     <div className="mx-auto max-w-3xl px-6 py-10">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4 no-print">
         <div>
-          <h1 className="font-display text-2xl font-bold text-paper">Product Requirement Document</h1>
+          <h1 className="font-display text-2xl font-bold text-paper">Dokumentasi & Spesifikasi Teknis</h1>
           <p className="mt-1 text-sm text-muted">{plan.structure?.appName}</p>
-          <p className="mt-1 font-mono text-[11px] text-trace">{wordCount} kata &middot; {charCount} karakter</p>
+          {activeTab !== "struktur" && (
+            <p className="mt-1 font-mono text-[11px] text-trace">{wordCount} kata &middot; {charCount} karakter</p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {isEditing ? (
@@ -187,10 +202,12 @@ export default function PrdPage() {
             </>
           ) : (
             <>
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                <Save className="h-3.5 w-3.5 mr-1" /> Edit
-              </Button>
-                  <Button variant="outline" size="sm" onClick={handleRegenerate}>
+              {activeTab !== "struktur" && (
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                  <Save className="h-3.5 w-3.5 mr-1" /> Edit
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={handleRegenerate}>
                 <RotateCw className="h-3.5 w-3.5 mr-1" /> Regenerate
               </Button>
               <Button variant="outline" size="sm" onClick={downloadMd}>
@@ -217,13 +234,22 @@ export default function PrdPage() {
           <FileText className="h-4 w-4" /> PRD
         </button>
         <button
-          onClick={() => setActiveTab("struktur")}
+          onClick={() => { setActiveTab("srs"); setIsEditing(false); }}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            activeTab === "srs" ? "bg-signal text-ink" : "text-muted hover:text-paper",
+          )}
+        >
+          <FileText className="h-4 w-4" /> SRS & Spesifikasi Teknik
+        </button>
+        <button
+          onClick={() => { setActiveTab("struktur"); setIsEditing(false); }}
           className={cn(
             "flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
             activeTab === "struktur" ? "bg-signal text-ink" : "text-muted hover:text-paper",
           )}
         >
-          <FolderTree className="h-4 w-4" /> Struktur Program
+          <FolderTree className="h-4 w-4" /> Struktur Folder
         </button>
       </div>
 
@@ -240,6 +266,27 @@ export default function PrdPage() {
             <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.prd}</ReactMarkdown>
             </article>
+          )}
+        </div>
+      )}
+
+      {activeTab === "srs" && (
+        <div className="rounded-xl border border-line bg-ink-raised p-8 print-content">
+          {isEditing ? (
+            <textarea
+              value={editedSrs}
+              onChange={(e) => handleEditChange(e.target.value)}
+              className="w-full min-h-[500px] border-none bg-transparent text-paper font-mono text-sm leading-relaxed focus:outline-none"
+              placeholder="Tulis SRS & Spesifikasi Teknik dalam format Markdown..."
+            />
+          ) : plan.srs ? (
+            <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.srs}</ReactMarkdown>
+            </article>
+          ) : (
+            <p className="text-sm text-muted text-center py-12">
+              SRS specifications are being generated. Regenerate documentation if empty.
+            </p>
           )}
         </div>
       )}

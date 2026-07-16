@@ -80,6 +80,13 @@ ${taskList || "- No remaining tasks"}
     });
   }
 
+  if (plan.srs) {
+    files.push({
+      path: "SRS.md",
+      content: plan.srs,
+    });
+  }
+
   files.push({
     path: "docs/tech-stack.md",
     content: `# Tech Stack\n\n## Frontend\n${plan.techChoice?.frontend || "-"}\n\n## Backend\n${plan.techChoice?.backend || "-"}\n\n## Database\n${plan.techChoice?.database || "-"}\n\n${plan.techChoice?.reasoning ? `## Reasoning\n${plan.techChoice.reasoning}` : ""}`,

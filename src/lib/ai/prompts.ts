@@ -481,3 +481,96 @@ Tulis dalam Bahasa Indonesia yang jelas, praktis, dan spesifik.`;
 
   return { system, prompt };
 }
+
+export function srsPrompt(
+  ideaText: string,
+  techChoice: TechChoice | null,
+  answers: ClarifyingAnswer[],
+  structure: { appName: string; summary: string; features: { name: string; phase: number; subFeatures: { name: string }[] }[] },
+  lang: string = "id",
+) {
+  const system = getSystemBase(lang);
+  const answersBlock = answers
+    .filter((a) => !a.skipped)
+    .map((a) => `- ${a.question}: ${a.answer}`)
+    .join("\n");
+
+  const featuresBlock = structure.features
+    .map(
+      (f) =>
+        lang === "en"
+          ? `- [Phase ${f.phase}] ${f.name}: ${f.subFeatures.map((s) => s.name).join(", ")}`
+          : `- [Fase ${f.phase}] ${f.name}: ${f.subFeatures.map((s) => s.name).join(", ")}`
+    )
+    .join("\n");
+
+  const prompt = lang === "en"
+    ? `Build a comprehensive Software Requirements Specification (SRS) & Technical Design Document in Markdown format for the following application.
+
+App Name: ${structure.appName}
+Summary: ${structure.summary}
+Initial User Idea: "${ideaText}"
+Tech Stack: ${techChoice ? `${techChoice.frontend} (frontend), ${techChoice.backend} (backend), ${techChoice.database} (database)` : "not determined"}
+
+Clarification Answers:
+${answersBlock || "(none)"}
+
+Feature Structure:
+${featuresBlock}
+
+Write the SRS using the following Markdown structure (use ## headings):
+## 1. System Architecture & Component Design
+Briefly describe the software components, security mechanisms (auth tokens, hashing), and communication protocols.
+
+## 2. Detailed Database Schema (SQL DDL)
+Provide the COMPLETE SQL CREATE TABLE statements (DDL) for all tables required by Phase 1 (MVP) features, with proper data types, primary keys, foreign keys, and indexes. Be extremely specific.
+
+## 3. API Endpoints Specification
+List all API endpoints needed for Phase 1. For each endpoint, specify:
+- HTTP Method (GET, POST, etc.) and Path
+- Request Headers & Body parameters (JSON schema/description)
+- Response JSON schema/example (including success and common error states)
+
+## 4. Visual & UI Brand Guidelines (Tailwind / CSS)
+Provide design rules:
+- Color Palette: primary, secondary, background, and accent colors in HEX and Tailwind classes.
+- Typography: recommended Google Font family and sizes for headings and body.
+- Tailwind Setup / CSS guidelines for buttons, inputs, cards, and page layout.
+
+Write in a professional, technical, and highly detailed manner. Focus on absolute clarity so any engineer or AI coding assistant can implement it without ambiguity.`
+    : `Buatkan Software Requirements Specification (SRS) & Dokumen Desain Teknis lengkap dalam format Markdown untuk aplikasi berikut.
+
+Nama aplikasi: ${structure.appName}
+Ringkasan: ${structure.summary}
+Ide awal user: "${ideaText}"
+Tech stack: ${techChoice ? `${techChoice.frontend} (frontend), ${techChoice.backend} (backend), ${techChoice.database} (database)` : "belum ditentukan"}
+
+Jawaban klarifikasi user:
+${answersBlock || "(tidak ada)"}
+
+Struktur fitur yang disepakati:
+${featuresBlock}
+
+Tulis SRS dengan struktur Markdown berikut (pakai heading ##):
+## 1. Arsitektur Sistem & Desain Komponen
+Deskripsikan secara singkat modul-modul software, mekanisme keamanan (token auth, enkripsi sandi), dan protokol komunikasi.
+
+## 2. Rancangan Schema Database Terperinci (SQL DDL)
+Berikan statement SQL CREATE TABLE (DDL) LENGKAP untuk semua tabel yang dibutuhkan fitur Fase 1 (MVP), lengkap dengan tipe data, primary key, foreign key, dan index. Harus sangat spesifik.
+
+## 3. Daftar Desain API Endpoints
+Tulis daftar lengkap API endpoint untuk Fase 1. Untuk setiap endpoint, tentukan:
+- HTTP Method (GET, POST, dll) dan Path
+- Parameter Request Headers & Request Body (JSON schema / deskripsi)
+- Contoh Response JSON (keadaan sukses dan error umum)
+
+## 4. Panduan Visual & Desain UI (Visual & Brand Guidelines)
+Berikan aturan desain:
+- Palet Warna: warna primary, secondary, background, dan accent dalam HEX dan class Tailwind.
+- Tipografi: rekomendasi font Google Fonts dan ukuran untuk heading serta body.
+- Aturan visual / panduan CSS/Tailwind untuk tombol, input text, card, dan layout halaman.
+
+Tulis dengan bahasa teknis yang profesional, mendalam, dan sangat detail. Fokus pada kejelasan absolut agar engineer atau AI coding assistant bisa langsung mengimplementasikannya tanpa ragu.`;
+
+  return { system, prompt };
+}

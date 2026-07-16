@@ -18,6 +18,7 @@ function rowToPlan(row: PlanRow): Plan {
     answers: row.answers,
     structure: row.structure,
     prd: row.prd,
+    srs: row.srs,
     folderStructure: row.folderStructure,
     tasks: row.tasks,
     landingOptions: row.landingOptions,

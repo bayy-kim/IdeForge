@@ -43,6 +43,7 @@ export function dbReady(): Promise<void> {
           answers TEXT,
           structure TEXT,
           prd TEXT,
+          srs TEXT,
           folder_structure TEXT,
           tasks TEXT,
           landing_options TEXT,
@@ -60,6 +61,7 @@ export function dbReady(): Promise<void> {
       try { await client.execute("ALTER TABLE plans ADD COLUMN user_email TEXT"); } catch {}
       try { await client.execute("ALTER TABLE plans ADD COLUMN folder_structure TEXT"); } catch {}
       try { await client.execute("ALTER TABLE plans ADD COLUMN required_skills TEXT"); } catch {}
+      try { await client.execute("ALTER TABLE plans ADD COLUMN srs TEXT"); } catch {}
       await client.execute(`
         CREATE TABLE IF NOT EXISTS gemini_usage (
           date TEXT PRIMARY KEY,

@@ -20,6 +20,7 @@ export const plans = sqliteTable("plans", {
   answers: text("answers", { mode: "json" }).$type<ClarifyingAnswer[] | null>(),
   structure: text("structure", { mode: "json" }).$type<PlanStructure | null>(),
   prd: text("prd"),
+  srs: text("srs"),
   folderStructure: text("folder_structure"),
   tasks: text("tasks", { mode: "json" }).$type<PlanTask[] | null>(),
   landingOptions: text("landing_options", { mode: "json" }).$type<LandingOption[] | null>(),

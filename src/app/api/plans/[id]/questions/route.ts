@@ -34,7 +34,19 @@ export async function GET(
       undefined,
       aiConfig,
     );
-    const updated = await updatePlan(id, { questions: result.questions });
+    const finalQuestions = [
+      ...(result.questions || []),
+      {
+        id: "additional_requests",
+        question: plan.language === "en"
+          ? "Are there any other features or additions you would like to include?"
+          : "Apakah ada fitur atau tambahan lain yang ingin ditanyakan / ditambahkan?",
+        type: "text" as const,
+        required: false,
+      },
+    ];
+
+    const updated = await updatePlan(id, { questions: finalQuestions });
     return NextResponse.json({ plan: updated });
   } catch (err) {
     if (err instanceof GeminiConfigError) {

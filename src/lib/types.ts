@@ -81,6 +81,7 @@ export interface Plan {
   answers: ClarifyingAnswer[] | null;
   structure: PlanStructure | null;
   prd: string | null;
+  srs: string | null;
   folderStructure: string | null;
   tasks: PlanTask[] | null;
   landingOptions: LandingOption[] | null;

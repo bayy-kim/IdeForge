@@ -25,6 +25,10 @@ export async function GET(
     files.push({ path: "PRD.md", content: plan.prd });
   }
 
+  if (plan.srs) {
+    files.push({ path: "SRS.md", content: plan.srs });
+  }
+
   if (plan.folderStructure) {
     files.push({ path: "STRUKTUR-FOLDER.md", content: plan.folderStructure });
   }
