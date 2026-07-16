@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { LoginPopover } from "@/components/login-popover";
-import { ArrowLeft, Check, Cpu, LogOut } from "lucide-react";
+import { ArrowLeft, Check, Cpu, LogOut, FlaskConical, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +38,13 @@ export default function ApiKeysPage() {
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [testKeyResult, setTestKeyResult] = useState<{ valid: boolean; error?: string; warning?: string } | null>(null);
   const [hasServerKey, setHasServerKey] = useState(false);
+
+  // Test all models
+  const [testingAll, setTestingAll] = useState(false);
+  const [testAllResult, setTestAllResult] = useState<{
+    results: { id: string; label: string; freeTier: boolean; ok: boolean; error?: string }[];
+    summary: { total: number; working: number; workingFree: number; workingPaid: number };
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/config")
@@ -120,6 +127,7 @@ export default function ApiKeysPage() {
       localStorage.setItem("ai_provider", aiProvider);
       if (aiKey) localStorage.setItem("ai_api_key", aiKey);
       if (aiUrl) localStorage.setItem("ai_api_url", aiUrl);
+      if (settings.ai_model) localStorage.setItem("ai_model", settings.ai_model);
       setSettings((prev) => ({ ...prev, ai_provider: aiProvider, ai_api_key: aiKey, ai_api_url: aiUrl }));
       setSaved("all");
       setTimeout(() => setSaved(null), 2000);
@@ -150,6 +158,25 @@ export default function ApiKeysPage() {
       setTestKeyResult({ valid: false, error: "Gagal melakukan test." });
     } finally {
       setTestingKey(null);
+    }
+  }
+
+  async function testAllModels() {
+    if (!aiKey.trim()) return;
+    setTestingAll(true);
+    setTestAllResult(null);
+    try {
+      const res = await fetch("/api/models/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: aiKey.trim() }),
+      });
+      const data = await res.json();
+      setTestAllResult(data);
+    } catch {
+      setTestAllResult(null);
+    } finally {
+      setTestingAll(false);
     }
   }
 
@@ -319,6 +346,80 @@ export default function ApiKeysPage() {
             )}
           </div>
         </div>
+
+        {/* Test All Models */}
+        {aiProvider === "gemini" && (
+          <div className="mt-6 rounded-xl border border-line bg-ink-raised p-5">
+            <div className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-signal" />
+              <h3 className="font-display font-semibold text-paper">Cek Semua Model</h3>
+            </div>
+            <p className="mt-1 text-xs text-muted leading-relaxed">
+              Tes semua model Gemini sekaligus — biar tau mana yg bisa dipake gratis & mana yg perlu billing.
+            </p>
+
+            {!testAllResult && (
+              <button
+                onClick={testAllModels}
+                disabled={testingAll || !aiKey.trim()}
+                className="mt-3 flex items-center gap-1.5 rounded border border-line px-3 py-2 text-xs font-mono text-paper transition-colors hover:border-signal/40 hover:text-signal disabled:opacity-40"
+              >
+                {testingAll ? "Mengetes 9 model..." : "Test Semua Model"}
+              </button>
+            )}
+
+            {testingAll && (
+              <p className="mt-3 text-xs text-muted animate-pulse">Mengetes semua model Gemini... (~10 detik)</p>
+            )}
+
+            {testAllResult && (
+              <div className="mt-4">
+                <div className="flex flex-wrap gap-2 mb-3 text-xs font-mono">
+                  <span className="text-trace">{testAllResult.summary.workingFree} gratis work</span>
+                  <span className="text-muted">&middot;</span>
+                  <span className="text-paper">{testAllResult.summary.workingPaid} billing work</span>
+                  <span className="text-muted">&middot;</span>
+                  <span className="text-danger">{testAllResult.summary.total - testAllResult.summary.working} fail</span>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  {testAllResult.results.map((r) => (
+                    <div
+                      key={r.id}
+                      className={cn(
+                        "flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-mono border",
+                        r.ok ? "border-trace/30 bg-trace/5" : "border-danger/20 bg-danger/5",
+                      )}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={cn("shrink-0", r.ok ? "text-trace" : "text-danger")}>
+                          {r.ok ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                        </span>
+                        <span className={cn("truncate", r.ok ? "text-trace" : "text-muted")}>
+                          {r.label}
+                        </span>
+                        <span className={cn(
+                          "shrink-0 rounded-full px-1.5 py-0 text-[9px] uppercase tracking-wider",
+                          r.freeTier ? "bg-trace/10 text-trace" : "bg-amber-500/10 text-amber-500",
+                        )}>
+                          {r.freeTier ? "gratis" : "billing"}
+                        </span>
+                      </div>
+                      <span className="text-muted shrink-0">{r.ok ? "OK" : r.error}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setTestAllResult(null)}
+                  className="mt-3 text-xs text-muted hover:text-paper font-mono"
+                >
+                  Sembunyikan
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 

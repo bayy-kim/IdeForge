@@ -104,11 +104,12 @@ export function TechStep({
           className="w-full rounded border border-line bg-ink px-3 py-2 text-sm text-paper font-mono focus:border-signal focus:outline-none"
         >
           {SELECTABLE_MODELS.map((m) => (
-            <option key={m.id} value={m.id}>{m.label}</option>
+            <option key={m.id} value={m.id}>{m.label}{m.freeTier ? " (Gratis)" : " (Billing)"}</option>
           ))}
         </select>
         <p className="mt-1.5 text-[11px] text-muted leading-relaxed">
-          Pilih model AI yang akan dipakai buat generate semua konten. Model lebih baru = hasil lebih bagus tapi bisa lebih lambat/kena limit.
+          Pilih model AI yang akan dipakai buat generate semua konten. <span className="text-trace">(Gratis)</span> = bisa tanpa billing,
+          <span className="text-muted ml-1">(Billing)</span> = perlu billing account. Model lebih baru = hasil lebih bagus tapi bisa lebih lambat/kena limit.
         </p>
       </div>
 

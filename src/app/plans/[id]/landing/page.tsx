@@ -123,7 +123,7 @@ export default function LandingPage() {
               className="rounded border border-line bg-ink px-2.5 py-1.5 text-xs text-paper font-mono focus:border-signal focus:outline-none"
             >
               {SELECTABLE_MODELS.map((m) => (
-                <option key={m.id} value={m.id}>{m.label}</option>
+                <option key={m.id} value={m.id}>{m.label}{m.freeTier ? " (Gratis)" : ""}</option>
               ))}
             </select>
           </div>
