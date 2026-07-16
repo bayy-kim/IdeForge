@@ -3,6 +3,7 @@ import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateJSON, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { structureSchema } from "@/lib/ai/schemas";
 import { structurePrompt } from "@/lib/ai/prompts";
+import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
 import type { PlanStructure, FeatureNode } from "@/lib/types";
 
 export async function GET(
@@ -15,18 +16,21 @@ export async function GET(
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
 
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
+
   if (plan.structure) {
     return NextResponse.json({ plan });
   }
 
   try {
-    const apiKey = req.headers.get("x-gemini-api-key") || null;
+    const aiConfig = await resolveAIConfig(req);
     const { system, prompt } = structurePrompt(plan.ideaText, plan.techChoice, plan.answers || [], plan.language || "id");
     const raw = await generateJSON<{
       appName: string;
       summary: string;
       features: Omit<FeatureNode, "status">[];
-    }>(prompt, structureSchema, system, apiKey);
+    }>(prompt, structureSchema, system, null, undefined, aiConfig);
 
     const structure: PlanStructure = {
       appName: raw.appName,

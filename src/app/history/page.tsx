@@ -88,7 +88,7 @@ export default function HistoryPage() {
               key={plan.id}
               className="group flex items-center justify-between gap-4 rounded-xl border border-line bg-ink-raised p-4 transition-colors hover:border-signal/30"
             >
-              <Link href={`/plan?id=${plan.id}`} className="min-w-0 flex-1">
+              <Link href={`/plans/${plan.id}`} className="min-w-0 flex-1">
                 <p className="truncate font-medium text-paper">{plan.ideaText}</p>
                 <p className="mt-0.5 font-mono text-[10px] text-muted">
                   {new Date(plan.createdAt).toLocaleDateString("id-ID", {

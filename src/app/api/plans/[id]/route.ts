@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPlan, updatePlan, deletePlan } from "@/lib/db/repo";
 import { auth } from "@/lib/auth";
+import { checkPlanOwnership } from "@/app/api/auth-utils";
 
 export async function GET(
   _req: NextRequest,
@@ -13,12 +14,8 @@ export async function GET(
       return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
     }
 
-    const session = await auth();
-    const userEmail = session?.user?.email;
-
-    if (plan.userEmail && plan.userEmail !== userEmail) {
-      return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
-    }
+    const ownershipError = await checkPlanOwnership(plan);
+    if (ownershipError) return ownershipError;
 
     return NextResponse.json({ plan });
   } catch {
@@ -37,11 +34,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
     }
 
-    const session = await auth();
-    const userEmail = session?.user?.email;
-    if (plan.userEmail && plan.userEmail !== userEmail) {
-      return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
-    }
+    const ownershipError = await checkPlanOwnership(plan);
+    if (ownershipError) return ownershipError;
 
     const body = await req.json().catch(() => null);
     if (!body) {
@@ -81,15 +75,21 @@ export async function DELETE(
       return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
     }
 
-    const session = await auth();
-    const userEmail = session?.user?.email;
+    // FIXED: check unauthenticated BEFORE ownership mismatch to allow proper 401 response
+    if (plan.userEmail) {
+      const session = await auth();
+      const userEmail = session?.user?.email;
 
-    if (plan.userEmail && plan.userEmail !== userEmail) {
-      return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
-    }
+      if (!userEmail) {
+        return NextResponse.json(
+          { error: "Login dulu untuk menghapus plan ini." },
+          { status: 401 },
+        );
+      }
 
-    if (plan.userEmail && !userEmail) {
-      return NextResponse.json({ error: "Login dulu untuk menghapus plan ini." }, { status: 401 });
+      if (plan.userEmail !== userEmail) {
+        return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
+      }
     }
 
     const deleted = await deletePlan(id);

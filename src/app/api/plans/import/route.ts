@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPlan, updatePlan } from "@/lib/db/repo";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,9 +14,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // FIXED: Associate the importing user's email so the plan appears in their history
+    const session = await auth();
+    const userEmail = session?.user?.email ?? null;
+
     const plan = await createPlan(imported.ideaText, imported.language || "id");
 
-    const patch: Record<string, unknown> = {};
+    const patch: Record<string, unknown> = {
+      // Attach owner
+      userEmail,
+    };
     if (imported.techMode) patch.techMode = imported.techMode;
     if (imported.techChoice) patch.techChoice = imported.techChoice;
     if (imported.questions) patch.questions = imported.questions;

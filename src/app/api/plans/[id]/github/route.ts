@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPlan } from "@/lib/db/repo";
+import { checkPlanOwnership } from "@/app/api/auth-utils";
 import type { Plan } from "@/lib/types";
 
 interface GitHubFile {
@@ -110,6 +111,9 @@ export async function POST(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   let body: { token?: string; repo?: string; description?: string; private?: boolean };
   try {

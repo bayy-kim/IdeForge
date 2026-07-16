@@ -32,6 +32,8 @@ export function PlanWizardClient({ planId }: { planId: string }) {
       router.replace(`/plans/${planId}/tasks`);
     } else if (data.plan.currentStep === "prompt") {
       router.replace(`/plans/${planId}/prompt`);
+    } else if (data.plan.currentStep === "questions") {
+      router.replace(`/plans/${planId}?step=questions`);
     }
   }, [planId, router]);
 

@@ -29,11 +29,12 @@ export async function GET() {
     results.dbReady = "FAIL: " + (e instanceof Error ? e.message : String(e));
   }
 
-  // 3. Try creating a plan
+  // 3. Test createPlan + immediate cleanup to avoid DB pollution
   try {
-    const { createPlan } = await import("@/lib/db/repo");
-    const plan = await createPlan("Test plan diag", "id");
-    results.createPlan = "OK: " + plan.id;
+    const { createPlan, deletePlan } = await import("@/lib/db/repo");
+    const plan = await createPlan("Test plan diag [auto-cleanup]", "id");
+    await deletePlan(plan.id);
+    results.createPlan = "OK (plan auto-deleted after test)";
   } catch (e) {
     results.createPlan = "FAIL: " + (e instanceof Error ? e.message : String(e));
   }

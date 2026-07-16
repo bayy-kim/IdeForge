@@ -50,6 +50,7 @@ export function dbReady(): Promise<void> {
           final_prompt TEXT,
           required_skills TEXT,
           current_step TEXT NOT NULL DEFAULT 'idea',
+          user_email TEXT,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
         );

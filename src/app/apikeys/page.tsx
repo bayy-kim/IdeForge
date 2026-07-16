@@ -79,10 +79,49 @@ export default function ApiKeysPage() {
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
+      // FIXED: sync ALL AI config keys to localStorage so apiFetch can read them immediately
       if (key === "ai_api_key") localStorage.setItem("ai_api_key", value);
       if (key === "ai_provider") localStorage.setItem("ai_provider", value);
+      if (key === "ai_api_url") localStorage.setItem("ai_api_url", value);
       setSettings((prev) => ({ ...prev, [key]: value }));
       setSaved(key);
+      setTimeout(() => setSaved(null), 2000);
+    } catch {
+      alert("Gagal menyimpan.");
+    } finally {
+      setSaving(null);
+    }
+  }
+
+  /** Atomically save provider + key + url all at once */
+  async function saveAllAiSettings() {
+    setSaving("all");
+    setSaved(null);
+    try {
+      const deviceIdHeader = !session?.user?.email ? { device_id: deviceId } : {};
+      await Promise.all([
+        fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "ai_provider", value: aiProvider, ...deviceIdHeader }),
+        }),
+        fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "ai_api_key", value: aiKey, ...deviceIdHeader }),
+        }),
+        fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "ai_api_url", value: aiUrl, ...deviceIdHeader }),
+        }),
+      ]);
+      // Sync all to localStorage immediately
+      localStorage.setItem("ai_provider", aiProvider);
+      if (aiKey) localStorage.setItem("ai_api_key", aiKey);
+      if (aiUrl) localStorage.setItem("ai_api_url", aiUrl);
+      setSettings((prev) => ({ ...prev, ai_provider: aiProvider, ai_api_key: aiKey, ai_api_url: aiUrl }));
+      setSaved("all");
       setTimeout(() => setSaved(null), 2000);
     } catch {
       alert("Gagal menyimpan.");
@@ -251,15 +290,15 @@ export default function ApiKeysPage() {
             </div>
           </div>
 
-          {/* Save Provider */}
+          {/* Save All AI Settings */}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <Button
               size="sm"
               variant="outline"
-              onClick={() => saveSetting("ai_provider", aiProvider)}
-              disabled={saving === "ai_provider"}
+              onClick={saveAllAiSettings}
+              disabled={saving === "all"}
             >
-              {saving === "ai_provider" ? "..." : saved === "ai_provider" ? <><Check className="h-3.5 w-3.5" /> Tersimpan</> : "Simpan Provider"}
+              {saving === "all" ? "..." : saved === "all" ? <><Check className="h-3.5 w-3.5" /> Tersimpan</> : "Simpan Semua"}
             </Button>
 
             <button

@@ -3,6 +3,7 @@ import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateJSON, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { techRecommendationSchema } from "@/lib/ai/schemas";
 import { techRecommendationPrompt } from "@/lib/ai/prompts";
+import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
 import type { TechChoice } from "@/lib/types";
 
 export async function POST(
@@ -15,6 +16,9 @@ export async function POST(
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
 
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
+
   const body = await req.json().catch(() => null);
   const mode: "ai" | "manual" = body?.mode;
 
@@ -22,9 +26,16 @@ export async function POST(
 
   if (mode === "ai") {
     try {
-      const apiKey = req.headers.get("x-gemini-api-key") || null;
+      const aiConfig = await resolveAIConfig(req);
       const { system, prompt } = techRecommendationPrompt(plan.ideaText, plan.language || "id");
-      techChoice = await generateJSON<TechChoice>(prompt, techRecommendationSchema, system, apiKey);
+      techChoice = await generateJSON<TechChoice>(
+        prompt,
+        techRecommendationSchema,
+        system,
+        null,
+        undefined,
+        aiConfig,
+      );
     } catch (err) {
       if (err instanceof GeminiConfigError) {
         return NextResponse.json({ error: err.message }, { status: 412 });

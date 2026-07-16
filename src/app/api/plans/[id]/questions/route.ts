@@ -3,6 +3,7 @@ import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateJSON, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { questionsSchema } from "@/lib/ai/schemas";
 import { clarifyingQuestionsPrompt } from "@/lib/ai/prompts";
+import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
 import type { ClarifyingQuestion } from "@/lib/types";
 
 export async function GET(
@@ -15,18 +16,23 @@ export async function GET(
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
 
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
+
   if (plan.questions && plan.questions.length > 0) {
     return NextResponse.json({ plan });
   }
 
   try {
-    const apiKey = req.headers.get("x-gemini-api-key") || null;
+    const aiConfig = await resolveAIConfig(req);
     const { system, prompt } = clarifyingQuestionsPrompt(plan.ideaText, plan.techChoice, plan.language || "id");
     const result = await generateJSON<{ questions: ClarifyingQuestion[] }>(
       prompt,
       questionsSchema,
       system,
-      apiKey,
+      null,
+      undefined,
+      aiConfig,
     );
     const updated = await updatePlan(id, { questions: result.questions });
     return NextResponse.json({ plan: updated });
@@ -50,6 +56,9 @@ export async function POST(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   const body = await req.json().catch(() => null);
   const answers = body?.answers;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateText, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { prdPrompt, folderStructurePrompt } from "@/lib/ai/prompts";
+import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
 
 export async function GET(
   req: NextRequest,
@@ -12,6 +13,9 @@ export async function GET(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   const searchParams = req.nextUrl.searchParams;
   const regenerate = searchParams.get("regenerate") === "true";
@@ -28,7 +32,7 @@ export async function GET(
   }
 
   try {
-    const apiKey = req.headers.get("x-gemini-api-key") || null;
+    const aiConfig = await resolveAIConfig(req);
     const { system, prompt } = prdPrompt(
       plan.ideaText,
       plan.techChoice,
@@ -36,7 +40,7 @@ export async function GET(
       plan.structure,
       plan.language || "id",
     );
-    const prd = await generateText(prompt, system, apiKey);
+    const prd = await generateText(prompt, system, null, undefined, aiConfig);
 
     let folderStructure: string | null = null;
     try {
@@ -45,7 +49,7 @@ export async function GET(
         plan.techChoice,
         plan.language || "id",
       );
-      folderStructure = await generateText(fsPrompt, fsSystem, apiKey);
+      folderStructure = await generateText(fsPrompt, fsSystem, null, undefined, aiConfig);
     } catch {
       folderStructure = null;
     }
@@ -72,6 +76,9 @@ export async function PATCH(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   const body = await req.json().catch(() => null);
   const prd: string | undefined = body?.prd;

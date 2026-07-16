@@ -34,3 +34,11 @@ export const plans = sqliteTable("plans", {
 
 export type PlanRow = typeof plans.$inferSelect;
 export type NewPlanRow = typeof plans.$inferInsert;
+
+export const settings = sqliteTable("settings", {
+  deviceId: text("device_id").notNull(),
+  key: text("key").notNull(),
+  value: text("value").notNull(),
+  createdAt: text("created_at").notNull().default(""),
+  updatedAt: text("updated_at").notNull().default(""),
+});

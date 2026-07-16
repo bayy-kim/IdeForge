@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPlan } from "@/lib/db/repo";
+import { checkPlanOwnership } from "@/app/api/auth-utils";
 import JSZip from "jszip";
 
 export async function GET(
@@ -11,6 +12,9 @@ export async function GET(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   const name = plan.structure?.appName?.replace(/[^a-zA-Z0-9]/g, "-") || "project";
   const zip = new JSZip();

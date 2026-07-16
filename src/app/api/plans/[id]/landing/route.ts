@@ -3,6 +3,7 @@ import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateJSON, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { landingOptionsSchema } from "@/lib/ai/schemas";
 import { landingPagePrompt } from "@/lib/ai/prompts";
+import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
 import type { LandingOption } from "@/lib/types";
 
 export async function GET(
@@ -14,6 +15,9 @@ export async function GET(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   const searchParams = req.nextUrl.searchParams;
   const regenerate = searchParams.get("regenerate") === "true";
@@ -30,15 +34,19 @@ export async function GET(
   }
 
   try {
-    const apiKey = req.headers.get("x-gemini-api-key") || null;
-    const model = searchParams.get("model") || undefined;
+    // Allow model override from query param (landing page has model selector in UI)
+    const modelOverride = searchParams.get("model") || undefined;
+    const aiConfig = await resolveAIConfig(req);
+    if (modelOverride) aiConfig.model = modelOverride;
+
     const { system, prompt } = landingPagePrompt(plan.structure, plan.language || "id");
     const result = await generateJSON<{ options: LandingOption[] }>(
       prompt,
       landingOptionsSchema,
       system,
-      apiKey,
-      model,
+      null,
+      undefined,
+      aiConfig,
     );
     const updated = await updatePlan(id, { landingOptions: result.options });
     return NextResponse.json({ plan: updated });
@@ -62,6 +70,9 @@ export async function POST(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   const body = await req.json().catch(() => null);
   const selectedLandingId: string | undefined = body?.selectedLandingId;

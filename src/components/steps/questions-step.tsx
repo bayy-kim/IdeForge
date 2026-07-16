@@ -69,7 +69,23 @@ export function QuestionsStep({
     for (const q of questions) {
       if (!q.required) continue;
       const state = answers[q.id];
-      if (!state || state.skipped || !state.answer.trim()) {
+      if (!state || state.skipped) {
+        errors.push(q.question);
+        continue;
+      }
+      const raw = state.answer.trim();
+      // FIXED: For multi-select choice questions, the answer is a JSON array string like "[]"
+      // We check if type is "choice" and q.multi is true, then parse and check selected count
+      if (q.type === "choice" && q.multi) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed) || parsed.length === 0) {
+            errors.push(q.question);
+          }
+        } catch {
+          errors.push(q.question);
+        }
+      } else if (!raw) {
         errors.push(q.question);
       }
     }
@@ -82,12 +98,21 @@ export function QuestionsStep({
     if (!validate()) return;
     setSubmitting(true);
     setError(null);
-    const payload = questions.map((q) => ({
-      questionId: q.id,
-      question: q.question,
-      answer: answers[q.id]?.answer || "",
-      skipped: answers[q.id]?.skipped || false,
-    }));
+    const payload = questions.map((q) => {
+      let answer = answers[q.id]?.answer || "";
+      try {
+        const parsed = JSON.parse(answer);
+        if (Array.isArray(parsed)) {
+          answer = parsed.join(", ");
+        }
+      } catch {}
+      return {
+        questionId: q.id,
+        question: q.question,
+        answer,
+        skipped: answers[q.id]?.skipped || false,
+      };
+    });
 
     try {
       const saveRes = await apiFetch(`/api/plans/${planId}/questions`, {
@@ -102,6 +127,7 @@ export function QuestionsStep({
       const structData = await structRes.json();
       if (!structRes.ok) throw new Error(structData.error || "Gagal membuat struktur.");
 
+      setSubmitting(false);
       onDone();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Terjadi kesalahan.");
@@ -182,7 +208,11 @@ export function QuestionsStep({
                     <div>
                       <div className="flex flex-wrap gap-2">
                         {(q.options || []).map((opt) => {
-                          const selectedOpts = state.answer ? state.answer.split(", ") : [];
+                          const selectedOpts: string[] = (() => {
+                            if (!state.answer) return [];
+                            try { return JSON.parse(state.answer); }
+                            catch { return state.answer.split(", "); }
+                          })();
                           const isSelected = selectedOpts.includes(opt);
                           return (
                             <button
@@ -192,8 +222,7 @@ export function QuestionsStep({
                                   const current = new Set(selectedOpts);
                                   if (isSelected) current.delete(opt);
                                   else current.add(opt);
-                                  const joined = [...current].join(", ");
-                                  setAnswer(q.id, { answer: joined, customMode: false });
+                                  setAnswer(q.id, { answer: JSON.stringify([...current]), customMode: false });
                                 } else {
                                   setAnswer(q.id, { answer: opt, customMode: false });
                                 }
@@ -211,7 +240,14 @@ export function QuestionsStep({
                         })}
                         {q.allowCustom && (
                           <button
-                            onClick={() => setAnswer(q.id, { customMode: true })}
+                            onClick={() => {
+                              let custom = state.answer || "";
+                              try {
+                                const parsed = JSON.parse(custom);
+                                if (Array.isArray(parsed)) custom = parsed.join(", ");
+                              } catch {}
+                              setAnswer(q.id, { customMode: true, answer: custom });
+                            }}
                             className={cn(
                               "rounded-full border px-4 py-2 text-sm transition-colors",
                               state.customMode
@@ -225,7 +261,15 @@ export function QuestionsStep({
                       </div>
                       {q.multi && !state.customMode && (
                         <p className="mt-2 text-[11px] text-trace font-mono">
-                          {state.answer ? `Dipilih: ${state.answer}` : "Pilih satu atau lebih"}
+                          {(() => {
+                            if (!state.answer) return "Pilih satu atau lebih";
+                            try {
+                              const arr = JSON.parse(state.answer);
+                              return Array.isArray(arr) && arr.length ? `Dipilih: ${arr.join(", ")}` : "Pilih satu atau lebih";
+                            } catch {
+                              return `Dipilih: ${state.answer}`;
+                            }
+                          })()}
                         </p>
                       )}
                       {state.customMode && (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateText, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { finalPromptCompilePrompt, requiredSkillsPrompt } from "@/lib/ai/prompts";
+import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
 
 export async function GET(
   req: NextRequest,
@@ -13,6 +14,9 @@ export async function GET(
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
 
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
+
   const searchParams = req.nextUrl.searchParams;
   const regenerate = searchParams.get("regenerate") === "true";
 
@@ -22,17 +26,15 @@ export async function GET(
 
   if (!plan.structure || !plan.prd) {
     return NextResponse.json(
-      { error: "PRD belum lengkap, selesaikan langkah sebelumnya dulu." },
+      { error: "Selesaikan langkah PRD terlebih dahulu." },
       { status: 400 },
     );
   }
 
   try {
-    const apiKey = req.headers.get("x-gemini-api-key") || null;
-    const selectedLanding = plan.landingOptions?.find((o) => o.id === plan.selectedLandingId) ?? null;
-    const landingStyle = selectedLanding
-      ? { styleName: selectedLanding.styleName, styleDescription: selectedLanding.styleDescription }
-      : null;
+    const aiConfig = await resolveAIConfig(req);
+    const landingStyle = plan.landingOptions?.find((o) => o.id === plan.selectedLandingId) || null;
+
     const { system, prompt } = finalPromptCompilePrompt(
       plan.structure,
       plan.techChoice,
@@ -41,7 +43,7 @@ export async function GET(
       landingStyle,
       plan.language || "id",
     );
-    const finalPrompt = await generateText(prompt, system, apiKey);
+    const finalPrompt = await generateText(prompt, system, null, undefined, aiConfig);
 
     let requiredSkills: string | null = null;
     try {
@@ -55,12 +57,16 @@ export async function GET(
         plan.techChoice,
         plan.language || "id",
       );
-      requiredSkills = await generateText(rsPrompt, rsSystem, apiKey);
+      requiredSkills = await generateText(rsPrompt, rsSystem, null, undefined, aiConfig);
     } catch {
       requiredSkills = null;
     }
 
-    const updated = await updatePlan(id, { finalPrompt, requiredSkills });
+    const updated = await updatePlan(id, {
+      finalPrompt,
+      requiredSkills: requiredSkills ?? undefined,
+      currentStep: "prompt",
+    });
     return NextResponse.json({ plan: updated });
   } catch (err) {
     if (err instanceof GeminiConfigError) {

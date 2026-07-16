@@ -4,15 +4,17 @@ Ubah ide aplikasi jadi tech stack, PRD (Product Requirement Document), dan task 
 
 **Alur:**
 1. **Mau bikin apa?** — ceritain ide aplikasimu dalam 1-2 kalimat
-2. **Preferensi teknologi** — biarkan AI rekomendasiin stack, atau pilih sendiri
+2. **Preferensi teknologi** — biarkan AI rekomendasikan stack, atau pilih sendiri
 3. **Beberapa pertanyaan** — AI nanya hal spesifik (target user, skala, monetisasi, dll) biar rencananya akurat
 4. **Struktur** — mind-map interaktif fitur, dikelompokkan per fase pengembangan
-5. **PRD** — dokumen requirement lengkap, bisa didownload sebagai `.md`
+5. **PRD** — dokumen requirement lengkap, bisa diedit, didownload sebagai `.md`
 6. **Mockup landing page** — pilih salah satu dari 3 konsep tampilan yang di-generate AI
 7. **Task** — breakdown kerja teknis per fitur, bisa dicentang
 8. **Prompt** — semuanya dirangkum jadi satu prompt siap tempel ke Claude Code / Cursor / AI coding assistant lain
 
-## Tech stack
+---
+
+## Tech Stack
 
 - **Next.js 15** (App Router) + **TypeScript**
 - **Tailwind CSS v4** + komponen ala shadcn/ui (ditulis manual, tanpa CLI)
@@ -21,10 +23,14 @@ Ubah ide aplikasi jadi tech stack, PRD (Product Requirement Document), dan task 
 - **Google Gemini API / Anthropic Claude / Custom** — AI generation (multi-provider)
 - **NextAuth v5** — Google OAuth login
 - **Framer Motion** — animasi dock & loader
+- **JSZip** — download ZIP project
+- **React Markdown + remark-gfm** — render PRD
 
-## Fitur
+---
 
-- **Multi-provider AI**: pake Gemini, Claude, atau API kustom — diatur dari halaman `/apikeys`
+## Fitur Utama
+
+- **Multi-provider AI**: pakai Gemini, Claude, atau API kustom — diatur dari halaman `/apikeys`
 - **Google OAuth**: login biar data dan riwayat tersimpan per akun, bukan cuma di browser
 - **Settings persist**: API key, provider, dan konfigurasi database tersimpan di database + localStorage
 - **History page**: lihat dan hapus rencana sebelumnya (perlu login)
@@ -34,6 +40,10 @@ Ubah ide aplikasi jadi tech stack, PRD (Product Requirement Document), dan task 
 - **Retry logic**: 3 percobaan dengan exponential backoff kalau kena rate limit (429/503)
 - **Download prompt**: hasil akhir bisa di-copy atau di-download sebagai `.md`
 - **Animated dock**: Apple-style dock di landing page hero
+- **Step indicator**: stepper visual di wizard (Tech → Q&A → Struktur → PRD → Landing → Task → Prompt)
+- **QuantumPulseLoader**: animasi kustom untuk loading state generasi AI
+
+---
 
 ## Setup Lokal
 
@@ -65,6 +75,8 @@ npm run dev
 ```
 
 Buka http://localhost:3000 — database SQLite (`ideforge.sqlite`) otomatis dibuat di root project.
+
+---
 
 ## Deploy ke Vercel + Turso
 
@@ -99,7 +111,9 @@ Tambah di Google Cloud Console:
 https://[app-mu].vercel.app/api/auth/callback/google
 ```
 
-## Struktur project
+---
+
+## Struktur Project
 
 ```
 src/
@@ -125,7 +139,9 @@ src/
     types.ts                 # semua tipe domain
 ```
 
-## Lingkungan
+---
+
+## Environment Variables
 
 | Variable | Wajib | Fungsi |
 |----------|-------|--------|
@@ -137,3 +153,11 @@ src/
 | `TURSO_DATABASE_URL` | Untuk Vercel | URL database Turso |
 | `TURSO_AUTH_TOKEN` | Untuk Vercel | Token autentikasi Turso |
 | `GEMINI_MODEL` | Tidak | Paksa model Gemini tertentu |
+
+*Wajib kalau tidak pakai provider lain via UI.
+
+---
+
+## License
+
+MIT — gunakan bebas untuk keperluan pribadi maupun komersial.

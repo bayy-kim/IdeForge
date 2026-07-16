@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Loader2, History, BarChart3, Key } from "lucide-react";
+import { ArrowUp, Loader2, History, BarChart3, Key, MoreHorizontal, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,20 @@ export default function PlanLandingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<{ todayUsage: number; remaining: number } | null>(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const mobileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (mobileRef.current && !mobileRef.current.contains(e.target as Node)) {
+        setShowMobileMenu(false);
+      }
+    }
+    if (showMobileMenu) {
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }
+  }, [showMobileMenu]);
 
   useEffect(() => {
     fetch("/api/config")
@@ -57,34 +71,76 @@ export default function PlanLandingPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 border-b border-line bg-ink/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/" className="font-display text-lg font-bold tracking-tight text-paper">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+          <Link href="/" className="font-display text-base font-bold tracking-tight text-paper sm:text-lg">
             idē<span className="text-signal">forge</span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {session?.user?.email ? (
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Link
-                  href="/history"
-                  className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper sm:px-3"
-                >
-                  <History className="h-3.5 w-3.5 shrink-0" />
-                  <span className="hidden sm:inline">Riwayat</span>
-                </Link>
-                <Link
-                  href="/apikeys"
-                  className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper sm:px-3"
-                >
-                  <Key className="h-3.5 w-3.5 shrink-0" />
-                  <span className="hidden sm:inline">Pengaturan</span>
-                </Link>
-                <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-danger/40 hover:text-danger sm:px-3"
-                >
-                  Logout
-                </button>
-              </div>
+              <>
+                {/* Desktop nav */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <Link
+                    href="/history"
+                    className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper"
+                  >
+                    <History className="h-3.5 w-3.5 shrink-0" />
+                    <span>Riwayat</span>
+                  </Link>
+                  <Link
+                    href="/apikeys"
+                    className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper"
+                  >
+                    <Key className="h-3.5 w-3.5 shrink-0" />
+                    <span>Pengaturan</span>
+                  </Link>
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-danger/40 hover:text-danger"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+
+                {/* Mobile menu */}
+                <div className="relative sm:hidden" ref={mobileRef}>
+                  <button
+                    onClick={() => setShowMobileMenu(!showMobileMenu)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:text-paper transition-colors"
+                    aria-label="Menu"
+                  >
+                    <MoreHorizontal className="h-5 w-5" />
+                  </button>
+                  {showMobileMenu && (
+                    <div className="absolute right-0 top-full mt-1 w-48 rounded-xl border border-line bg-ink-raised p-2 shadow-xl z-50">
+                      <Link
+                        href="/history"
+                        onClick={() => setShowMobileMenu(false)}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink-raised-2 transition-colors"
+                      >
+                        <History className="h-3.5 w-3.5 shrink-0" />
+                        Riwayat
+                      </Link>
+                      <Link
+                        href="/apikeys"
+                        onClick={() => setShowMobileMenu(false)}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink-raised-2 transition-colors"
+                      >
+                        <Key className="h-3.5 w-3.5 shrink-0" />
+                        Pengaturan
+                      </Link>
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono text-danger hover:bg-danger/10 transition-colors w-full text-left"
+                      >
+                        <LogOut className="h-3.5 w-3.5 shrink-0" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <LoginPopover />
             )}

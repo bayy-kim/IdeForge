@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, dbReady } from "./index";
-import { plans, type PlanRow } from "./schema";
+import { plans, settings, type PlanRow } from "./schema";
 import type { Plan } from "@/lib/types";
 
 function genId(): string {
@@ -83,4 +83,14 @@ export async function deletePlan(id: string): Promise<boolean> {
   await dbReady();
   const res = await db.delete(plans).where(eq(plans.id, id)).run();
   return res.rowsAffected > 0;
+}
+
+export async function getUserSettings(deviceIdOrEmail: string): Promise<Record<string, string>> {
+  await dbReady();
+  const rows = await db.select().from(settings).where(eq(settings.deviceId, deviceIdOrEmail)).all();
+  const res: Record<string, string> = {};
+  for (const r of rows) {
+    res[r.key] = r.value;
+  }
+  return res;
 }

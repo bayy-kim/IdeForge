@@ -25,7 +25,7 @@ export default function StructurePage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/plans/${id}/structure`)
+    apiFetch(`/api/plans/${id}/structure`)
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;

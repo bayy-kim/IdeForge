@@ -3,6 +3,7 @@ import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateJSON, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { tasksSchema } from "@/lib/ai/schemas";
 import { tasksPrompt } from "@/lib/ai/prompts";
+import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
 import type { PlanTask } from "@/lib/types";
 
 export async function GET(
@@ -14,6 +15,9 @@ export async function GET(
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
 
   const searchParams = req.nextUrl.searchParams;
   const regenerate = searchParams.get("regenerate") === "true";
@@ -30,13 +34,15 @@ export async function GET(
   }
 
   try {
-    const apiKey = req.headers.get("x-gemini-api-key") || null;
+    const aiConfig = await resolveAIConfig(req);
     const { system, prompt } = tasksPrompt(plan.structure, plan.techChoice, plan.language || "id");
     const result = await generateJSON<{ tasks: Omit<PlanTask, "done">[] }>(
       prompt,
       tasksSchema,
       system,
-      apiKey,
+      null,
+      undefined,
+      aiConfig,
     );
     const tasks: PlanTask[] = result.tasks.map((t) => ({ ...t, done: false }));
     const updated = await updatePlan(id, { tasks, currentStep: "prompt" });
@@ -61,6 +67,10 @@ export async function PATCH(
   if (!plan || !plan.tasks) {
     return NextResponse.json({ error: "Plan atau task tidak ditemukan." }, { status: 404 });
   }
+
+  const ownershipError = await checkPlanOwnership(plan);
+  if (ownershipError) return ownershipError;
+
   const body = await req.json().catch(() => null);
   const taskId: string | undefined = body?.taskId;
   const done: boolean | undefined = body?.done;
