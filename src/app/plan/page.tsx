@@ -4,42 +4,28 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Loader2, BarChart3, History } from "lucide-react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { Textarea } from "@/components/ui/textarea";
-import { LoginPopover } from "@/components/login-popover";
 import { BgOrbs } from "@/components/bg-orbs";
-import { SidebarMenu } from "@/components/sidebar-menu";
+import { StepperHeader } from "@/components/stepper-header";
 
 const PLACEHOLDER =
   'Contoh: "Aplikasi pencatat pengeluaran harian, bisa input lewat WhatsApp, ada dashboard ringkasan bulanan..."';
 
 export default function PlanLandingPage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const [ideaText, setIdeaText] = useState("");
   const [language, setLanguage] = useState("en");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<{ todayUsage: number; remaining: number } | null>(null);
-  
-  const [hasServerKey, setHasServerKey] = useState(true);
-  const [localKey, setLocalKey] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("ai_api_key") || "";
-    }
-    return "";
-  });
 
   useEffect(() => {
     fetch("/api/config")
       .then((r) => r.json())
       .then((d) => {
         setUsage({ todayUsage: d.todayUsage ?? 0, remaining: d.remaining ?? 0 });
-        setHasServerKey(d.hasKey ?? false);
       })
-      .catch(() => {
-        setHasServerKey(false);
-      });
+      .catch(() => {});
   }, []);
 
   async function handleSubmit() {
@@ -70,30 +56,7 @@ export default function PlanLandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 border-b border-line bg-ink/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-          <Link href="/" className="font-display text-base font-bold tracking-tight text-paper sm:text-lg">
-            idē<span className="text-signal">forge</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <SidebarMenu
-              isLoggedIn={!!session?.user?.email}
-              userEmail={session?.user?.email}
-              hasServerKey={hasServerKey}
-              localKey={localKey}
-              onSaveKey={(key) => {
-                if (key) {
-                  localStorage.setItem("ai_api_key", key);
-                  setLocalKey(key);
-                } else {
-                  localStorage.removeItem("ai_api_key");
-                  setLocalKey("");
-                }
-              }}
-            />
-          </div>
-        </div>
-      </header>
+      <StepperHeader />
 
       <main className="relative flex flex-1 flex-col items-center justify-center px-6">
         <div className="blueprint-grid pointer-events-none absolute inset-0" />
@@ -187,4 +150,4 @@ export default function PlanLandingPage() {
       </main>
     </div>
   );
-}
+              }
