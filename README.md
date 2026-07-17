@@ -14,6 +14,8 @@ Ubah ide aplikasi jadi tech stack, PRD (Product Requirement Document), dan task 
 
 ---
 
+> ⚠️ **PostCSS Advisory (`GHSA-qx2v-qp2m-jg93`)** — PostCSS < 8.5.10 memiliki XSS vulnerability lewat `</style>` yang tidak di-escape di CSS stringify output. Versi terpasang (`postcss@8.4.31`) adalah bundled dependency Next.js; fix resmi di Next.js belum dirilis. Pantau [Next.js release](https://github.com/vercel/next.js/releases) untuk update.
+
 ## Tech Stack
 
 - **Next.js 15** (App Router) + **TypeScript**
