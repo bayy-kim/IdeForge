@@ -32,12 +32,11 @@ export function SidebarMenu({
   const [tempKey, setTempKey] = useState(localKey);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Sync tempKey with localKey when localKey changes
-  useEffect(() => {
+  // Reset tempKey whenever sidebar is opened so it reflects the latest localKey
+  function handleOpen() {
     setTempKey(localKey);
-  }, [localKey]);
-
-  // Lock scroll when sidebar is open
+    setIsOpen(true);
+  }
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -71,7 +70,7 @@ export function SidebarMenu({
     <>
       {/* Hamburger Trigger Button */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpen}
         className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:text-paper hover:bg-ink-raised transition-all duration-200"
         aria-label="Buka menu navigasi"
       >
