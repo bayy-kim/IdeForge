@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { client, dbReady } from "@/lib/db/index";
 import { auth } from "@/lib/auth";
+import { encrypt, decrypt, SENSITIVE_SETTING_KEYS } from "@/lib/crypto";
 
 /** Returns the lookup ID: email when logged in, device_id otherwise. */
 async function resolveId(bodyDeviceId?: string | null): Promise<string | null> {
@@ -23,7 +24,13 @@ export async function GET(req: NextRequest) {
     });
     const settings: Record<string, string> = {};
     for (const row of rs.rows) {
-      settings[String(row.key)] = String(row.value);
+      const k = String(row.key);
+      let v = String(row.value);
+      // Decrypt sensitive values before returning to client
+      if (SENSITIVE_SETTING_KEYS.has(k)) {
+        v = decrypt(v);
+      }
+      settings[k] = v;
     }
     return NextResponse.json({ settings });
   } catch {
@@ -35,13 +42,23 @@ export async function POST(req: NextRequest) {
   await dbReady();
   const body = await req.json().catch(() => null);
   const key: string | undefined = body?.key;
-  const value: string | undefined = body?.value;
+  let value: string | undefined = body?.value;
   if (!key || value == null) {
     return NextResponse.json({ error: "key dan value wajib diisi." }, { status: 400 });
   }
   const deviceId = await resolveId(body?.device_id);
   if (!deviceId) {
     return NextResponse.json({ error: "Login dulu atau kirim device_id." }, { status: 400 });
+  }
+  // Encrypt sensitive values before storing
+  if (SENSITIVE_SETTING_KEYS.has(key)) {
+    try {
+      value = encrypt(value);
+    } catch (e) {
+      return NextResponse.json({
+        error: e instanceof Error ? e.message : "Gagal mengenkripsi pengaturan.",
+      }, { status: 500 });
+    }
   }
   try {
     await client.execute({
