@@ -37,10 +37,16 @@
   --font-mono: var(--font-mono);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--ink);
   color: var(--paper);
   font-family: var(--font-body), system-ui, sans-serif;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Faint drafting-table grid texture used on wizard/background surfaces */
@@ -208,4 +214,4 @@ body {
     width: 100% !important;
     max-width: 100% !important;
   }
-}
+                               }
