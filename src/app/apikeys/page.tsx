@@ -150,6 +150,7 @@ export default function ApiKeysPage() {
           provider: aiProvider,
           apiKey: aiKey.trim(),
           apiUrl: aiUrl.trim() || undefined,
+          model: settings.ai_model || undefined,
         }),
       });
       const data = await res.json();

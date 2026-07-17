@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DEFAULT_MODEL } from "@/lib/ai/models";
 
-async function testGemini(apiKey: string): Promise<{ valid: boolean; error?: string; warning?: string }> {
+const GEMINI_DEFAULT = DEFAULT_MODEL;
+const CLAUDE_DEFAULT = "claude-sonnet-4-20250514";
+
+async function testGemini(
+  apiKey: string,
+  model?: string,
+): Promise<{ valid: boolean; error?: string; warning?: string }> {
+  const m = model || GEMINI_DEFAULT;
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -23,8 +31,13 @@ async function testGemini(apiKey: string): Promise<{ valid: boolean; error?: str
   return { valid: false, error: `Error (${res.status}): ${text.slice(0, 100)}` };
 }
 
-async function testClaude(apiKey: string, apiUrl?: string): Promise<{ valid: boolean; error?: string; warning?: string }> {
+async function testClaude(
+  apiKey: string,
+  apiUrl?: string,
+  model?: string,
+): Promise<{ valid: boolean; error?: string; warning?: string }> {
   const url = apiUrl || "https://api.anthropic.com/v1/messages";
+  const m = model || CLAUDE_DEFAULT;
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -33,7 +46,7 @@ async function testClaude(apiKey: string, apiUrl?: string): Promise<{ valid: boo
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: m,
       max_tokens: 5,
       messages: [{ role: "user", content: "Reply OK" }],
     }),
@@ -72,6 +85,7 @@ export async function POST(req: NextRequest) {
   const apiKey: string | undefined = body?.apiKey;
   const provider: string = body?.provider || "gemini";
   const apiUrl: string | undefined = body?.apiUrl;
+  const model: string | undefined = body?.model;
 
   if (!apiKey) {
     return NextResponse.json({ valid: false, error: "API key tidak boleh kosong." });
@@ -81,13 +95,13 @@ export async function POST(req: NextRequest) {
     let result;
     switch (provider) {
       case "claude":
-        result = await testClaude(apiKey, apiUrl);
+        result = await testClaude(apiKey, apiUrl, model);
         break;
       case "custom":
         result = await testCustom(apiKey, apiUrl);
         break;
       default:
-        result = await testGemini(apiKey);
+        result = await testGemini(apiKey, model);
     }
     return NextResponse.json(result);
   } catch {
