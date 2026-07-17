@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getUserSettings } from "@/lib/db/repo";
+import { decrypt, SENSITIVE_SETTING_KEYS } from "@/lib/crypto";
 import type { Plan } from "@/lib/types";
 import type { AIConfig, AIProvider } from "@/lib/ai/gemini";
 
@@ -77,6 +78,12 @@ export async function resolveAIConfig(req: NextRequest): Promise<AIConfig> {
     const lookupId = session?.user?.email || null;
     if (lookupId) {
       const userSettings = await getUserSettings(lookupId);
+      // Decrypt sensitive settings (e.g. ai_api_key) since DB stores them encrypted
+      for (const key of Object.keys(userSettings)) {
+        if (SENSITIVE_SETTING_KEYS.has(key)) {
+          userSettings[key] = decrypt(userSettings[key]);
+        }
+      }
       const provider = (userSettings["ai_provider"] as AIProvider) || "gemini";
       const apiKey = userSettings["ai_api_key"] || null;
       const apiUrl = userSettings["ai_api_url"] || null;
