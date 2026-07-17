@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { signOut, signIn } from "next-auth/react";
 import { 
@@ -30,7 +31,13 @@ export function SidebarMenu({
   const [isOpen, setIsOpen] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [tempKey, setTempKey] = useState(localKey);
+  const [mounted, setMounted] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard mounted-check for portal SSR safety
+    setMounted(true);
+  }, []);
 
   // Reset tempKey whenever sidebar is opened so it reflects the latest localKey
   function handleOpen() {
@@ -77,24 +84,29 @@ export function SidebarMenu({
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* Sidebar Backdrop Overlay */}
-      <div
-        className={cn(
-          "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-none",
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0"
-        )}
-        style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
-      />
+      {/* Sidebar Backdrop + Panel — portaled to <body> so it always positions
+          relative to the real viewport, not whatever ancestor happens to sit
+          above it (e.g. the header's backdrop-blur, which otherwise silently
+          traps position:fixed descendants and breaks this drawer). */}
+      {mounted &&
+        createPortal(
+          <>
+            <div
+              className={cn(
+                "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-none",
+                isOpen ? "opacity-100 pointer-events-auto" : "opacity-0"
+              )}
+              style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
+            />
 
-      {/* Sidebar Panel Drawer */}
-      <div
-        ref={sidebarRef}
-        className={cn(
-          "fixed right-0 top-0 bottom-0 z-50 w-full max-w-[340px] border-l border-line bg-ink-raised shadow-2xl transition-transform duration-300 flex flex-col",
-          isOpen ? "translate-x-0" : "translate-x-full"
-        )}
-        style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
-      >
+            <div
+              ref={sidebarRef}
+              className={cn(
+                "fixed right-0 top-0 bottom-0 z-50 w-full max-w-[340px] border-l border-line bg-ink-raised shadow-2xl transition-transform duration-300 flex flex-col",
+                isOpen ? "translate-x-0" : "translate-x-full"
+              )}
+              style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
+            >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <span className="font-display font-bold text-paper text-sm uppercase tracking-wider">
@@ -266,7 +278,10 @@ export function SidebarMenu({
             </button>
           </div>
         )}
-      </div>
+            </div>
+          </>,
+          document.body,
+        )}
     </>
   );
-}
+                                                   }
