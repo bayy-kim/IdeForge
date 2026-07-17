@@ -139,13 +139,28 @@ export async function POST(
 
   const userRes = await githubFetch("https://api.github.com/user", token);
   if (!userRes.ok) {
+    const detail = userRes.data?.message
+      ? ` (${userRes.data.message})`
+      : "";
     return NextResponse.json(
-      { error: "Token GitHub tidak valid." },
+      { error: `Token GitHub tidak valid.${detail}` },
       { status: 401 },
     );
   }
   const user = userRes.data;
   const login = user.login;
+
+  // Check if repo already exists to give a better error
+  const existingRes = await githubFetch(
+    `https://api.github.com/repos/${login}/${repo}`,
+    token,
+  );
+  if (existingRes.ok) {
+    return NextResponse.json(
+      { error: `Repo "${login}/${repo}" sudah ada. Pilih nama repo lain.` },
+      { status: 409 },
+    );
+  }
 
   const createRes = await githubFetch("https://api.github.com/user/repos", token, "POST", {
     name: repo,
@@ -154,15 +169,20 @@ export async function POST(
     auto_init: false,
   });
 
-  if (!createRes.ok && createRes.status !== 422) {
+  if (!createRes.ok) {
+    const msg = createRes.data?.message || "Unknown error";
+    const errs = createRes.data?.errors;
+    const detail = Array.isArray(errs)
+      ? errs.map((e: Record<string, string>) => e.message || JSON.stringify(e)).join("; ")
+      : msg;
     return NextResponse.json(
-      { error: `Gagal membuat repo: ${createRes.data?.message || "Unknown error"}` },
+      { error: `Gagal membuat repo: ${detail}` },
       { status: 500 },
     );
   }
 
   const files = generateProjectFiles(plan);
-  const results: { path: string; status: string }[] = [];
+  const results: { path: string; status: string; error?: string }[] = [];
 
   for (const file of files) {
     const encoded = Buffer.from(file.content).toString("base64");
@@ -175,16 +195,22 @@ export async function POST(
         content: encoded,
       },
     );
-    results.push({
-      path: file.path,
-      status: putRes.ok ? "created" : "failed",
-    });
+    if (putRes.ok) {
+      results.push({ path: file.path, status: "created" });
+    } else {
+      results.push({
+        path: file.path,
+        status: "failed",
+        error: putRes.data?.message || `HTTP ${putRes.status}`,
+      });
+    }
   }
 
   const repoUrl = `https://github.com/${login}/${repo}`;
+  const hasFailures = results.some((r) => r.status === "failed");
 
   return NextResponse.json({
-    success: true,
+    success: !hasFailures,
     repo: repoUrl,
     files: results,
   });

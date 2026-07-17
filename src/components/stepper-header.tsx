@@ -59,6 +59,7 @@ export function StepperHeader({ planId }: { planId?: string }) {
   const [githubPushing, setGithubPushing] = useState(false);
   const [githubError, setGithubError] = useState<string | null>(null);
   const [githubSuccess, setGithubSuccess] = useState<string | null>(null);
+  const [githubResults, setGithubResults] = useState<{ path: string; status: string; error?: string }[] | null>(null);
 
   const isLoggedIn = !!session?.user?.email;
 
@@ -97,6 +98,7 @@ export function StepperHeader({ planId }: { planId?: string }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal push ke GitHub.");
       setGithubSuccess(data.repo);
+      setGithubResults(data.files || null);
     } catch (e) {
       setGithubError(e instanceof Error ? e.message : "Gagal push ke GitHub.");
     } finally {
@@ -240,19 +242,37 @@ export function StepperHeader({ planId }: { planId?: string }) {
             </p>
 
             {githubSuccess ? (
-              <div className="text-center py-4">
-                <Check className="h-8 w-8 text-trace mx-auto mb-2" />
-                <p className="text-sm text-paper mb-2">Berhasil dipush ke GitHub!</p>
-                <a
-                  href={githubSuccess}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-signal hover:underline"
-                >
-                  <ExternalLink className="h-3 w-3" /> {githubSuccess}
-                </a>
+              <div className="py-4">
+                <div className="text-center">
+                  <Check className="h-8 w-8 text-trace mx-auto mb-2" />
+                  <p className="text-sm text-paper mb-2">Berhasil dipush ke GitHub!</p>
+                  <a
+                    href={githubSuccess}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-signal hover:underline"
+                  >
+                    <ExternalLink className="h-3 w-3" /> {githubSuccess}
+                  </a>
+                </div>
+                {githubResults && (
+                  <div className="mt-4 space-y-1 border-t border-line pt-4">
+                    <p className="text-[11px] text-muted font-mono mb-2 uppercase tracking-wider">File status:</p>
+                    {githubResults.map((f) => (
+                      <div key={f.path} className="flex items-center gap-2 text-xs font-mono">
+                        {f.status === "created" ? (
+                          <Check className="h-3 w-3 shrink-0 text-trace" />
+                        ) : (
+                          <X className="h-3 w-3 shrink-0 text-danger" />
+                        )}
+                        <span className={f.status === "failed" ? "text-danger" : "text-paper"}>{f.path}</span>
+                        {f.error && <span className="text-muted">— {f.error}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <button
-                  onClick={() => { setShowGithub(false); setGithubSuccess(null); }}
+                  onClick={() => { setShowGithub(false); setGithubSuccess(null); setGithubResults(null); }}
                   className="block mt-4 mx-auto text-xs text-muted hover:text-paper font-mono"
                 >
                   Tutup
