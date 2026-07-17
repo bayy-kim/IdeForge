@@ -20,7 +20,9 @@ export default function PlanLandingPage() {
   const [usage, setUsage] = useState<{ todayUsage: number; remaining: number } | null>(null);
 
   useEffect(() => {
-    fetch("/api/config")
+    const model = localStorage.getItem("ai_model") || "";
+    const params = model ? `?model=${encodeURIComponent(model)}` : "";
+    fetch(`/api/config${params}`)
       .then((r) => r.json())
       .then((d) => {
         setUsage({ todayUsage: d.todayUsage ?? 0, remaining: d.remaining ?? 0 });

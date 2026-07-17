@@ -69,6 +69,14 @@ export function dbReady(): Promise<void> {
         );
       `);
       await client.execute(`
+        CREATE TABLE IF NOT EXISTS model_usage (
+          date TEXT NOT NULL,
+          model TEXT NOT NULL,
+          count INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (date, model)
+        );
+      `);
+      await client.execute(`
         CREATE TABLE IF NOT EXISTS settings (
           device_id TEXT NOT NULL,
           key TEXT NOT NULL,

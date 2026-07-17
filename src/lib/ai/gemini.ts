@@ -132,7 +132,7 @@ async function callGemini(
           );
         }
 
-        incrementUsage().catch(() => {});
+        incrementUsage(model).catch(() => {});
         return text;
       }
 
@@ -219,11 +219,11 @@ async function callClaude(
       );
     }
 
-    if (res.ok) {
+      if (res.ok) {
       const data = await res.json();
       const text: string | undefined = data?.content?.[0]?.text;
       if (!text) throw new GeminiRequestError("Claude tidak mengembalikan konten. Coba lagi.");
-      incrementUsage().catch(() => {});
+      incrementUsage(model).catch(() => {});
       return text;
     }
 
@@ -309,7 +309,7 @@ async function callCustom(
       const data = await res.json();
       const text: string | undefined = data?.choices?.[0]?.message?.content;
       if (!text) throw new GeminiRequestError("Custom API tidak mengembalikan konten. Coba lagi.");
-      incrementUsage().catch(() => {});
+      incrementUsage(opts.model).catch(() => {});
       return text;
     }
 
