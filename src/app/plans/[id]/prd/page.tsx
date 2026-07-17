@@ -285,7 +285,7 @@ export default function PrdPage() {
             </article>
           ) : (
             <p className="text-sm text-muted text-center py-12">
-              SRS specifications are being generated. Regenerate documentation if empty.
+              SRS belum digenerate. Tekan <strong>Regenerate</strong> di atas untuk membuatnya.
             </p>
           )}
         </div>
