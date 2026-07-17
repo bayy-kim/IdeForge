@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, SlidersHorizontal, Loader2, Cpu } from "lucide-react";
+import { Sparkles, SlidersHorizontal, Loader2, Cpu, RotateCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,7 +148,19 @@ export function TechStep({
         </div>
       )}
 
-      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+      {error && (
+        <div className="mt-3 flex items-center gap-3">
+          <p className="text-sm text-danger">{error}</p>
+          <button
+            onClick={submit}
+            disabled={loading}
+            className="flex items-center gap-1 rounded border border-line px-3 py-1 text-xs font-mono text-muted transition-colors hover:border-signal/40 hover:text-paper disabled:opacity-40"
+          >
+            <RotateCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+            {loading ? "..." : "Coba Lagi"}
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 flex justify-end">
         <Button onClick={submit} disabled={!mode || loading}>

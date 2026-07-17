@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Edit3, Check, X, Loader2 } from "lucide-react";
+import { Edit3, Check, X, Loader2, RotateCw } from "lucide-react";
 import { QuantumPulseLoader } from "@/components/ui/quantum-pulse-loader";
 import { StructureFlow } from "@/components/structure/structure-flow";
 import { StepNav } from "@/components/step-nav";
@@ -73,6 +73,21 @@ export default function StructurePage() {
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">
         <p className="text-sm text-danger">{error}</p>
+        <button
+          onClick={() => {
+            setError(null);
+            apiFetch(`/api/plans/${id}/structure`)
+              .then((r) => r.json())
+              .then((data) => {
+                if (data.error) setError(data.error);
+                else setPlan(data.plan);
+              })
+              .catch(() => setError("Gagal memuat struktur."));
+          }}
+          className="mt-4 flex items-center gap-1.5 rounded border border-line px-4 py-2 text-xs font-mono text-muted transition-colors hover:border-signal/40 hover:text-paper"
+        >
+          <RotateCw className="h-3.5 w-3.5" /> Coba Lagi
+        </button>
       </div>
     );
   }

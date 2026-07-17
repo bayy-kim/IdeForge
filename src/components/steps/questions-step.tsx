@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, RotateCw } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -148,6 +148,31 @@ export function QuestionsStep({
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">
         <p className="text-sm text-danger">{error}</p>
+        <button
+          onClick={() => {
+            setError(null);
+            setLoadingQuestions(true);
+            apiFetch(`/api/plans/${planId}/questions`)
+              .then((r) => r.json())
+              .then((data) => {
+                if (data.error) setError(data.error);
+                else {
+                  const qs: ClarifyingQuestion[] = data.plan.questions || [];
+                  setQuestions(qs);
+                  setAnswers(
+                    Object.fromEntries(
+                      qs.map((q) => [q.id, { answer: "", skipped: false, customMode: false }]),
+                    ),
+                  );
+                }
+                setLoadingQuestions(false);
+              })
+              .catch(() => setError("Gagal memuat pertanyaan."));
+          }}
+          className="mt-4 flex items-center gap-1.5 rounded border border-line px-4 py-2 text-xs font-mono text-muted transition-colors hover:border-signal/40 hover:text-paper"
+        >
+          <RotateCw className="h-3.5 w-3.5" /> Coba Lagi
+        </button>
       </div>
     );
   }
@@ -298,7 +323,19 @@ export function QuestionsStep({
         })}
       </div>
 
-      {error && <p className="mt-4 text-sm text-danger">{error}</p>}
+      {error && (
+        <div className="mt-4 flex items-center gap-3">
+          <p className="text-sm text-danger">{error}</p>
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="flex items-center gap-1 rounded border border-line px-3 py-1 text-xs font-mono text-muted transition-colors hover:border-signal/40 hover:text-paper disabled:opacity-40"
+          >
+            <RotateCw className={`h-3 w-3 ${submitting ? "animate-spin" : ""}`} />
+            {submitting ? "..." : "Coba Lagi"}
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 flex justify-end">
         <Button onClick={submit} disabled={submitting}>
