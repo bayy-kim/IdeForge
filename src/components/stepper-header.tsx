@@ -6,7 +6,7 @@ import { useSession, signIn } from "next-auth/react";
 import { cn, apiFetch } from "@/lib/utils";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Key, GitBranch, X, Loader2, Check, ExternalLink, Download } from "lucide-react";
+import { GitBranch, X, Loader2, Check, ExternalLink } from "lucide-react";
 import { SidebarMenu } from "@/components/sidebar-menu";
 
 const STAGES = [
@@ -40,14 +40,7 @@ export function StepperHeader({ planId }: { planId?: string }) {
   const activeIndex = STAGES.findIndex((s) => s.key === active);
 
   const [hasServerKey, setHasServerKey] = useState(true);
-  const [localKey, setLocalKey] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("ai_api_key") || "";
-    }
-    return "";
-  });
-  const [showInput, setShowInput] = useState(false);
-  const [tempKey, setTempKey] = useState(localKey);
+  const localKey = typeof window !== "undefined" ? localStorage.getItem("ai_api_key") || "" : "";
   const [showMore, setShowMore] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
@@ -112,18 +105,6 @@ export function StepperHeader({ planId }: { planId?: string }) {
       .then((d) => setHasServerKey(d.hasKey))
       .catch(() => setHasServerKey(false));
   }, []);
-
-  function saveKey() {
-    if (tempKey.trim()) {
-      localStorage.setItem("ai_api_key", tempKey.trim());
-      setLocalKey(tempKey.trim());
-    } else {
-      localStorage.removeItem("ai_api_key");
-      setLocalKey("");
-    }
-    setShowInput(false);
-    window.location.reload();
-  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ink/90 backdrop-blur">

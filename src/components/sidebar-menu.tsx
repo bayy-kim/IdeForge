@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { signOut, signIn } from "next-auth/react";
 import { 
-  X, Menu, History, Settings, LogOut, Key, Download, GitBranch, Plus, User, Info, Check, ShieldAlert
+  X, Menu, History, Settings, LogOut, Download, GitBranch, Plus, User, Check, ShieldAlert
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
