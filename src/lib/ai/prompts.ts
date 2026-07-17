@@ -13,15 +13,61 @@ export function techRecommendationPrompt(ideaText: string, lang: string = "id") 
     ? `App idea from user:
 """${ideaText}"""
 
-Recommend the MOST PRACTICAL tech stack for this idea — prioritize technologies that are easy to learn, free to start, and popular (many references/community). Do not pick exotic technologies unless absolutely necessary.
+Recommend the MOST PRACTICAL, MODERN, and PRODUCTION-READY tech stack for this idea. You must evaluate the app type (e.g. SaaS, real-time chat, AI app, mobile app, internal tool, landing page) and recommend the best combination of tools.
 
-Provide: frontend, backend, database, list of extras (maximum 3, e.g. auth provider, hosting, AI API), and a brief reasoning (2-3 sentences) why this combination fits the idea.`
+Guidelines for choosing:
+- **Frontend Frameworks**:
+  - Web: Next.js (App Router), SvelteKit, Remix, Astro (for content-heavy/SEO sites), or React/Vite (simple SPA).
+  - Mobile: React Native (Expo) or Flutter.
+- **Backend & APIs**:
+  - Full-stack frameworks (Next.js/SvelteKit API Routes) for simpler CRUD or serverless setups.
+  - Dedicated backend like Node.js/TypeScript (Express, NestJS), Python (FastAPI) for AI/ML/Data work, Go (Gin/Fiber) or Rust (Axum) for high-performance microservices.
+- **Database & Storage**:
+  - Relational: PostgreSQL (via Supabase, Neon, or self-hosted) or MySQL.
+  - Document/NoSQL: MongoDB or Firestore.
+  - Key-Value/Cache: Redis.
+  - Vector DB: Pinecone, Qdrant, or pgvector (if AI semantic search/embeddings are needed).
+- **Authentication**: NextAuth.js/Auth.js, Clerk, Supabase Auth, or Firebase Auth.
+- **ORM / Query Builders**: Prisma, Drizzle ORM, or Mongoose.
+- **State Management**: Zustand, Redux Toolkit, or Jotai.
+- **Styling**: TailwindCSS, Shadcn UI, Radix UI, or CSS Modules.
+- **Hosting & Infrastructure**: Vercel, Netlify, Railway, Render, Fly.io, or AWS.
+
+Provide:
+1. **frontend**: Recommended frontend framework and styling libraries.
+2. **backend**: Recommended backend runtime, framework, and API type (REST, GraphQL, gRPC).
+3. **database**: Recommended database, ORM, caching layer (if applicable).
+4. **extras**: An array of maximum 3 extra libraries/services (e.g., Auth, Vector DB, Hosting, Payment Gateway, Queue/Background workers).
+5. **reasoning**: A detailed explanation (3-4 sentences) justifying this specific stack combination based on the scalability, performance, security, and developer-velocity requirements of the user's idea.`
     : `Ide aplikasi dari user:
 """${ideaText}"""
 
-Rekomendasikan tech stack yang PALING PRAKTIS untuk ide ini — utamakan yang gampang dipelajari, gratis untuk mulai, dan populer (banyak referensi/komunitas). Jangan pilih teknologi eksotis kecuali benar-benar dibutuhkan.
+Rekomendasikan tech stack yang PALING PRAKTIS, MODERN, dan SIAP PRODUKSI untuk ide ini. Evaluasi tipe aplikasi (misal: SaaS, chat real-time, aplikasi AI, aplikasi mobile, internal tool, landing page) dan rekomendasikan kombinasi tools terbaik.
 
-Berikan: frontend, backend, database, daftar extras (maksimal 3, contoh: auth provider, hosting, AI API), dan reasoning singkat (2-3 kalimat) kenapa kombinasi ini cocok untuk ide tersebut.`;
+Panduan dalam memilih:
+- **Frontend Frameworks**:
+  - Web: Next.js (App Router), SvelteKit, Remix, Astro (untuk web berorientasi konten/SEO), atau React/Vite (untuk SPA sederhana).
+  - Mobile: React Native (Expo) atau Flutter.
+- **Backend & APIs**:
+  - Full-stack framework (Next.js/SvelteKit API Routes) untuk aplikasi CRUD sederhana atau serverless.
+  - Dedicated backend seperti Node.js/TypeScript (Express, NestJS), Python (FastAPI) untuk keperluan AI/ML/Data, Go (Gin/Fiber) atau Rust (Axum) untuk performa tinggi/mikroservis.
+- **Database & Storage**:
+  - Relational: PostgreSQL (melalui Supabase, Neon, atau self-hosted) atau MySQL.
+  - Document/NoSQL: MongoDB atau Firestore.
+  - Key-Value/Cache: Redis.
+  - Vector DB: Pinecone, Qdrant, atau pgvector (jika butuh pencarian semantik AI/embeddings).
+- **Authentication**: NextAuth.js/Auth.js, Clerk, Supabase Auth, atau Firebase Auth.
+- **ORM / Query Builders**: Prisma, Drizzle ORM, atau Mongoose.
+- **State Management**: Zustand, Redux Toolkit, atau Jotai.
+- **Styling**: TailwindCSS, Shadcn UI, Radix UI, atau CSS Modules.
+- **Hosting & Infrastruktur**: Vercel, Netlify, Railway, Render, Fly.io, atau AWS.
+
+Berikan:
+1. **frontend**: Framework frontend dan library styling yang direkomendasikan.
+2. **backend**: Runtime backend, framework, dan tipe API (REST, GraphQL, gRPC).
+3. **database**: Database, ORM, dan caching layer (jika perlu) yang direkomendasikan.
+4. **extras**: Array berisi maksimal 3 library/layanan tambahan (contoh: Auth provider, Vector DB, Hosting, Payment Gateway seperti Midtrans/Stripe, Antrian/Background workers).
+5. **reasoning**: Penjelasan detail (3-4 kalimat) yang menjustifikasi kenapa kombinasi stack ini sangat cocok berdasarkan skalabilitas, performa, keamanan, dan kecepatan development dari ide user tersebut.`;
 
   return { system, prompt };
 }

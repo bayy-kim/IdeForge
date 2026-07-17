@@ -6,7 +6,8 @@ import { useSession, signIn } from "next-auth/react";
 import { cn, apiFetch } from "@/lib/utils";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Key, GitBranch, X, Loader2, Check, ExternalLink, Download, MoreHorizontal } from "lucide-react";
+import { Key, GitBranch, X, Loader2, Check, ExternalLink, Download } from "lucide-react";
+import { SidebarMenu } from "@/components/sidebar-menu";
 
 const STAGES = [
   { key: "plan", label: "Plan" },
@@ -187,147 +188,30 @@ export function StepperHeader({ planId }: { planId?: string }) {
         </div>
 
         {/* Desktop right actions */}
-        <div className="hidden sm:flex items-center gap-3">
-          <ApiKeyButton
+        {/* Sidebar Menu Trigger (both desktop and mobile) */}
+        <div className="flex items-center gap-2">
+          <SidebarMenu
+            planId={planId}
+            isLoggedIn={isLoggedIn}
+            userEmail={session?.user?.email}
             hasServerKey={hasServerKey}
             localKey={localKey}
-            showInput={showInput}
-            setShowInput={setShowInput}
-            tempKey={tempKey}
-            setTempKey={setTempKey}
-            saveKey={saveKey}
+            onSaveKey={(key) => {
+              if (key) {
+                localStorage.setItem("ai_api_key", key);
+              } else {
+                localStorage.removeItem("ai_api_key");
+              }
+              window.location.reload();
+            }}
+            onPushGithub={() => {
+              if (isLoggedIn) {
+                setShowGithub(true);
+              } else {
+                signIn("google", { callbackUrl: window.location.href });
+              }
+            }}
           />
-
-          {planId && (
-            <>
-              <a
-                href={`/api/plans/${planId}/download`}
-                className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs font-mono text-muted transition-colors hover:text-paper"
-                title="Download ZIP Project"
-              >
-                <Download className="h-3 w-3" />
-                <span>Download</span>
-              </a>
-
-              <GithubButton
-                isLoggedIn={isLoggedIn}
-                showGithub={showGithub}
-                setShowGithub={setShowGithub}
-              />
-
-              <Link
-                href="/plan"
-                className="font-mono text-xs text-muted transition-colors hover:text-paper shrink-0"
-              >
-                + new plan
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* Mobile "More" dropdown */}
-        <div className="sm:hidden" ref={moreRef}>
-          <button
-            onClick={() => setShowMore(!showMore)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:text-paper transition-colors"
-            aria-label="Menu lainnya"
-          >
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
-
-          {showMore && (
-            <div className="absolute right-2 top-full mt-1 w-56 rounded-xl border border-line bg-ink-raised p-2 shadow-xl z-50">
-              <div className="flex flex-col gap-1">
-                {/* API Key */}
-                <button
-                  onClick={() => { setShowInput(!showInput); setShowMore(false); }}
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono transition-colors w-full text-left",
-                    hasServerKey || localKey ? "text-muted hover:text-paper hover:bg-ink-raised-2" : "text-danger"
-                  )}
-                >
-                  <Key className="h-3.5 w-3.5 shrink-0" />
-                  {hasServerKey ? "API Key (Server)" : localKey ? "API Key (Custom)" : "Set API Key"}
-                </button>
-
-                {planId && (
-                  <>
-                    <a
-                      href={`/api/plans/${planId}/download`}
-                      onClick={() => setShowMore(false)}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink-raised-2 transition-colors"
-                    >
-                      <Download className="h-3.5 w-3.5 shrink-0" />
-                      Download ZIP
-                    </a>
-
-                    <button
-                      onClick={() => {
-                        setShowMore(false);
-                        if (isLoggedIn) {
-                          setShowGithub(true);
-                        } else {
-                          signIn("google", { callbackUrl: window.location.href });
-                        }
-                      }}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink-raised-2 transition-colors w-full text-left"
-                      title="Push PRD, struktur, dan prompt ke GitHub"
-                    >
-                      <GitBranch className="h-3.5 w-3.5 shrink-0" />
-                      Push ke GitHub
-                    </button>
-
-                    <Link
-                      href="/plan"
-                      onClick={() => setShowMore(false)}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink-raised-2 transition-colors border-t border-line mt-1 pt-2"
-                    >
-                      + new plan
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Mobile API Key popover */}
-          {showInput && (
-            <div className="absolute right-2 top-full mt-1 w-72 rounded-xl border border-line bg-ink-raised p-4 shadow-xl z-50">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-bold text-paper font-display">Gemini API Key Setup</p>
-                <button onClick={() => setShowInput(false)} className="text-muted hover:text-paper">
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <p className="text-[11px] text-muted mb-3 leading-normal">
-                {hasServerKey
-                  ? "Server sudah dikonfigurasi dengan API Key. Anda bisa mengisi custom API Key di bawah untuk menimpa key server."
-                  : "Server belum dikonfigurasi API Key. Silakan masukkan Gemini API Key gratis dari Google AI Studio."}
-              </p>
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  placeholder="AIzaSy..."
-                  value={tempKey}
-                  onChange={(e) => setTempKey(e.target.value)}
-                  className="flex-1 rounded border border-line bg-ink px-2 py-1 text-xs text-paper focus:border-signal focus:outline-none"
-                />
-                <button
-                  onClick={saveKey}
-                  className="rounded bg-signal px-3 text-xs font-semibold text-ink hover:bg-[#bef264]"
-                >
-                  Simpan
-                </button>
-              </div>
-              <Link
-                href="/apikeys"
-                onClick={() => setShowInput(false)}
-                className="mt-3 block text-center text-[11px] text-signal hover:underline"
-              >
-                Pengaturan lengkap →
-              </Link>
-            </div>
-          )}
         </div>
       </div>
 
@@ -430,102 +314,3 @@ export function StepperHeader({ planId }: { planId?: string }) {
     </header>
   );
 }
-
-/* ─── Sub-components ─── */
-
-function ApiKeyButton({
-  hasServerKey, localKey, showInput, setShowInput, tempKey, setTempKey, saveKey,
-}: {
-  hasServerKey: boolean;
-  localKey: string;
-  showInput: boolean;
-  setShowInput: (v: boolean) => void;
-  tempKey: string;
-  setTempKey: (v: string) => void;
-  saveKey: () => void;
-}) {
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setShowInput(!showInput)}
-        className={cn(
-          "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors",
-          hasServerKey
-            ? "border-line text-muted hover:text-paper"
-            : localKey
-              ? "border-trace/35 text-trace bg-trace-dim hover:bg-trace/20"
-              : "border-danger/30 text-danger bg-danger/10 hover:bg-danger/20 animate-pulse"
-        )}
-      >
-        <Key className="h-3 w-3" />
-        {hasServerKey ? "API Key (Server)" : localKey ? "API Key (Custom)" : "Set API Key"}
-      </button>
-
-      {showInput && (
-        <div className="absolute right-0 mt-2 w-72 rounded-xl border border-line bg-ink-raised p-4 shadow-xl">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-bold text-paper font-display">Gemini API Key Setup</p>
-            <button onClick={() => setShowInput(false)} className="text-muted hover:text-paper">
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <p className="text-[11px] text-muted mb-3 leading-normal">
-            {hasServerKey
-              ? "Server sudah dikonfigurasi dengan API Key. Anda bisa mengisi custom API Key di bawah untuk menimpa key server."
-              : "Server belum dikonfigurasi API Key. Silakan masukkan Gemini API Key gratis dari Google AI Studio."}
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              placeholder="AIzaSy..."
-              value={tempKey}
-              onChange={(e) => setTempKey(e.target.value)}
-              className="flex-1 rounded border border-line bg-ink px-2 py-1 text-xs text-paper focus:border-signal focus:outline-none"
-            />
-            <button
-              onClick={saveKey}
-              className="rounded bg-signal px-3 text-xs font-semibold text-ink hover:bg-[#bef264]"
-            >
-              Simpan
-            </button>
-          </div>
-          <Link
-            href="/apikeys"
-            className="mt-3 block text-center text-[11px] text-signal hover:underline"
-          >
-            Pengaturan lengkap →
-          </Link>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function GithubButton({
-  isLoggedIn, showGithub, setShowGithub,
-}: {
-  isLoggedIn: boolean;
-  showGithub: boolean;
-  setShowGithub: (v: boolean) => void;
-}) {
-  return (
-    <button
-      onClick={() => {
-        if (!isLoggedIn) {
-          signIn("google", { callbackUrl: window.location.href });
-          return;
-        }
-        setShowGithub(!showGithub);
-      }}
-      className="group relative flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs font-mono text-muted transition-colors hover:text-paper"
-    >
-      <GitBranch className="h-3 w-3" />
-      GitHub
-      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink-raised-2 border border-line px-2.5 py-1 text-[10px] text-paper opacity-0 group-hover:opacity-100 transition-opacity">
-        Push ke GitHub
-      </span>
-    </button>
-  );
-}
-
-
