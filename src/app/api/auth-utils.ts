@@ -58,22 +58,20 @@ export async function checkPlanOwnership(
  *  3. Server-side environment variables (GEMINI_API_KEY)
  */
 export async function resolveAIConfig(req: NextRequest): Promise<AIConfig> {
-  // 1. Try request headers (client-injected via apiFetch / localStorage)
   const headerKey = req.headers.get("x-gemini-api-key") || null;
   const headerProvider = req.headers.get("x-ai-provider") as AIProvider | null;
   const headerUrl = req.headers.get("x-ai-api-url") || null;
   const headerModel = req.headers.get("x-gemini-model") || null;
 
-  if (headerKey || headerProvider) {
-    return {
-      provider: headerProvider || "gemini",
-      apiKey: headerKey,
-      apiUrl: headerUrl,
-      model: headerModel || undefined,
-    };
-  }
+  // Start with default server env configuration
+  let config: AIConfig = {
+    provider: "gemini",
+    apiKey: process.env.GEMINI_API_KEY || null,
+    apiUrl: null,
+    model: undefined,
+  };
 
-  // 2. Try user settings from DB
+  // 1. Database settings override (if logged in and settings exist)
   try {
     const session = await auth();
     const lookupId = session?.user?.email || null;
@@ -85,18 +83,29 @@ export async function resolveAIConfig(req: NextRequest): Promise<AIConfig> {
       const model = userSettings["ai_model"] || null;
 
       if (apiKey) {
-        return { provider, apiKey, apiUrl, model: model || undefined };
+        config = {
+          provider,
+          apiKey,
+          apiUrl,
+          model: model || undefined,
+        };
       }
     }
   } catch {
-    // DB not ready or no session — fall through to env
+    // DB not ready or no session — keep default
   }
 
-  // 3. Fall back to server env GEMINI_API_KEY (Gemini only)
-  return {
-    provider: "gemini",
-    apiKey: process.env.GEMINI_API_KEY || null,
-    apiUrl: null,
-    model: undefined,
-  };
+  // 2. Client-side header credential overrides (takes precedence over database settings)
+  if (headerProvider || headerKey) {
+    config.provider = headerProvider || config.provider;
+    config.apiKey = headerKey || config.apiKey;
+    config.apiUrl = headerUrl || config.apiUrl;
+  }
+
+  // 3. UI active model selection override (always takes highest priority for the current request)
+  if (headerModel) {
+    config.model = headerModel;
+  }
+
+  return config;
 }
