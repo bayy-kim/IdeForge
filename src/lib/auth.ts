@@ -6,6 +6,7 @@ import Credentials from "next-auth/providers/credentials";
 const isDev = process.env.NODE_ENV === "development" || process.env.DEV_SECRET;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     Google,
     GitHub,
