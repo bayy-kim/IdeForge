@@ -21,6 +21,7 @@ const STAGES = [
 ] as const;
 
 function activeStageFromPath(pathname: string, stepQuery?: string | null): (typeof STAGES)[number]["key"] {
+  if (pathname === "/plan") return "plan";
   if (pathname.includes("/structure")) return "struktur";
   if (pathname.includes("/prd")) return "prd";
   if (pathname.includes("/landing")) return "landing";
@@ -313,4 +314,4 @@ export function StepperHeader({ planId }: { planId?: string }) {
       )}
     </header>
   );
-}
+            }
