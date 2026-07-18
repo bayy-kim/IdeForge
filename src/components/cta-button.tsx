@@ -32,9 +32,9 @@ export function CtaButton() {
     <div className="relative" ref={ref}>
       <button
         onClick={handleClick}
-        className="inline-flex items-center gap-2 rounded-xl bg-signal px-8 py-4 font-display text-base font-semibold text-ink transition-colors hover:bg-[#bef264]"
+        className="inline-flex items-center gap-2 rounded-xl bg-signal px-8 py-4 font-display text-base font-semibold text-ink transition-colors hover:bg-signal/90"
       >
-        Start Building
+        Mulai Bikin
         <ArrowRight className="h-5 w-5" />
       </button>
       {open && !session?.user?.email && (
