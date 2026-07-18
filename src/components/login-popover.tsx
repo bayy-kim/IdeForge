@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { LogIn, Bug, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const providers = [
   { id: "google", label: "Google", icon: "G" },
@@ -62,8 +63,15 @@ export function LoginPopover() {
       >
         <LogIn className="h-3.5 w-3.5" /> Login
       </button>
-      {open && (
-        <div className="absolute right-0 mt-2 w-48 rounded-xl border border-line bg-ink-raised p-2 shadow-xl z-50">
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-0 mt-2 w-48 rounded-xl border border-line bg-ink-raised p-2 shadow-xl z-50"
+          >
           {showDev ? (
             <div className="p-1">
               <div className="flex items-center justify-between mb-2">
@@ -118,8 +126,9 @@ export function LoginPopover() {
               </div>
             </div>
           )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

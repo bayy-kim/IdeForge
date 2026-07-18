@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { LoginPopover } from "@/components/login-popover";
 import { ArrowLeft, FileText, Trash2 } from "lucide-react";
+import { motion } from "@/components/motion";
 import type { Plan } from "@/lib/types";
 
 export default function HistoryPage() {
@@ -40,7 +41,14 @@ export default function HistoryPage() {
   if (status === "loading") {
     return (
       <main className="mx-auto min-h-screen max-w-2xl px-6 py-12">
-        <p className="text-sm text-muted">Memuat...</p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="text-sm text-muted"
+        >
+          Memuat...
+        </motion.p>
       </main>
     );
   }
@@ -48,12 +56,18 @@ export default function HistoryPage() {
   if (!session?.user?.email) {
     return (
       <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-6 py-12 text-center">
-        <FileText className="mb-4 h-12 w-12 text-muted" />
-        <h1 className="font-display text-xl font-bold text-paper">Riwayat Rencana</h1>
-        <p className="mt-2 text-sm text-muted">Login dulu buat lihat riwayat rencana kamu.</p>
-        <div className="mt-6">
-          <LoginPopover />
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <FileText className="mb-4 h-12 w-12 text-muted mx-auto" />
+          <h1 className="font-display text-xl font-bold text-paper">Riwayat Rencana</h1>
+          <p className="mt-2 text-sm text-muted">Login dulu buat lihat riwayat rencana kamu.</p>
+          <div className="mt-6">
+            <LoginPopover />
+          </div>
+        </motion.div>
       </main>
     );
   }
@@ -71,7 +85,12 @@ export default function HistoryPage() {
       <p className="mt-1 text-xs text-muted">{plans.length} rencana</p>
 
       {plans.length === 0 ? (
-        <div className="mt-12 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mt-12 text-center"
+        >
           <FileText className="mx-auto mb-4 h-10 w-10 text-muted" />
           <p className="text-sm text-muted">Belum ada rencana. Mulai bikin dari halaman utama.</p>
           <Link
@@ -80,12 +99,15 @@ export default function HistoryPage() {
           >
             Buat Rencana
           </Link>
-        </div>
+        </motion.div>
       ) : (
         <div className="mt-6 flex flex-col gap-3">
-          {plans.map((plan) => (
-            <div
+          {plans.map((plan, i) => (
+            <motion.div
               key={plan.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
               className="group flex items-center justify-between gap-4 rounded-xl border border-line bg-ink-raised p-4 transition-colors hover:border-signal/30"
             >
               <Link href={`/plans/${plan.id}`} className="min-w-0 flex-1">
@@ -109,7 +131,7 @@ export default function HistoryPage() {
               >
                 <Trash2 className="h-4 w-4" />
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

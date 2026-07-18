@@ -9,6 +9,7 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { StepNav } from "@/components/step-nav";
 import { cn, apiFetch } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Plan } from "@/lib/types";
 
 type Tab = "prd" | "struktur" | "srs";
@@ -253,57 +254,82 @@ export default function PrdPage() {
         </button>
       </div>
 
-      {activeTab === "prd" && (
-        <div className="rounded-xl border border-line bg-ink-raised p-8 print-content">
-          {isEditing ? (
-            <textarea
-              value={editedPrd}
-              onChange={(e) => handleEditChange(e.target.value)}
-              className="w-full min-h-[500px] border-none bg-transparent text-paper font-mono text-sm leading-relaxed focus:outline-none"
-              placeholder="Tulis PRD dalam format Markdown..."
-            />
-          ) : (
-            <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.prd}</ReactMarkdown>
-            </article>
+      <div className="mt-6">
+        <AnimatePresence mode="wait">
+          {activeTab === "prd" && (
+            <motion.div
+              key="prd"
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="rounded-xl border border-line bg-ink-raised p-8 print-content"
+            >
+              {isEditing ? (
+                <textarea
+                  value={editedPrd}
+                  onChange={(e) => handleEditChange(e.target.value)}
+                  className="w-full min-h-[500px] border-none bg-transparent text-paper font-mono text-sm leading-relaxed focus:outline-none"
+                  placeholder="Tulis PRD dalam format Markdown..."
+                />
+              ) : (
+                <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.prd}</ReactMarkdown>
+                </article>
+              )}
+            </motion.div>
           )}
-        </div>
-      )}
 
-      {activeTab === "srs" && (
-        <div className="rounded-xl border border-line bg-ink-raised p-8 print-content">
-          {isEditing ? (
-            <textarea
-              value={editedSrs}
-              onChange={(e) => handleEditChange(e.target.value)}
-              className="w-full min-h-[500px] border-none bg-transparent text-paper font-mono text-sm leading-relaxed focus:outline-none"
-              placeholder="Tulis SRS & Spesifikasi Teknik dalam format Markdown..."
-            />
-          ) : plan.srs ? (
-            <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.srs}</ReactMarkdown>
-            </article>
-          ) : (
-            <p className="text-sm text-muted text-center py-12">
-              SRS belum digenerate. Tekan <strong>Regenerate</strong> di atas untuk membuatnya.
-            </p>
+          {activeTab === "srs" && (
+            <motion.div
+              key="srs"
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="rounded-xl border border-line bg-ink-raised p-8 print-content"
+            >
+              {isEditing ? (
+                <textarea
+                  value={editedSrs}
+                  onChange={(e) => handleEditChange(e.target.value)}
+                  className="w-full min-h-[500px] border-none bg-transparent text-paper font-mono text-sm leading-relaxed focus:outline-none"
+                  placeholder="Tulis SRS & Spesifikasi Teknik dalam format Markdown..."
+                />
+              ) : plan.srs ? (
+                <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.srs}</ReactMarkdown>
+                </article>
+              ) : (
+                <p className="text-sm text-muted text-center py-12">
+                  SRS belum digenerate. Tekan <strong>Regenerate</strong> di atas untuk membuatnya.
+                </p>
+              )}
+            </motion.div>
           )}
-        </div>
-      )}
 
-      {activeTab === "struktur" && (
-        <div className="rounded-xl border border-line bg-ink-raised p-8 print-content">
-          {plan.folderStructure ? (
-            <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.folderStructure}</ReactMarkdown>
-            </article>
-          ) : (
-            <p className="text-sm text-muted text-center py-12">
-              Struktur folder belum digenerate. Tekan <strong>Regenerate</strong> di atas untuk membuatnya.
-            </p>
+          {activeTab === "struktur" && (
+            <motion.div
+              key="struktur"
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="rounded-xl border border-line bg-ink-raised p-8 print-content"
+            >
+              {plan.folderStructure ? (
+                <article className="prose prose-invert prose-ideforge max-w-none prose-headings:font-display">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan.folderStructure}</ReactMarkdown>
+                </article>
+              ) : (
+                <p className="text-sm text-muted text-center py-12">
+                  Struktur folder belum digenerate. Tekan <strong>Regenerate</strong> di atas untuk membuatnya.
+                </p>
+              )}
+            </motion.div>
           )}
-        </div>
-      )}
+        </AnimatePresence>
+      </div>
 
       <StepNav
         prevLabel="Kembali ke struktur"

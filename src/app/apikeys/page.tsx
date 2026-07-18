@@ -7,6 +7,7 @@ import { LoginPopover } from "@/components/login-popover";
 import { ArrowLeft, Check, Cpu, LogOut, FlaskConical, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AI_PROVIDERS = [
   { id: "gemini", label: "Google Gemini", defaultUrl: "https://generativelanguage.googleapis.com/v1beta/models/" },
@@ -213,7 +214,14 @@ export default function ApiKeysPage() {
       </div>
 
       {status === "loading" && (
-        <p className="mt-4 text-xs text-muted">Memuat sesi...</p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="mt-4 text-xs text-muted"
+        >
+          Memuat sesi...
+        </motion.p>
       )}
 
       {session?.user?.email && (
@@ -337,13 +345,26 @@ export default function ApiKeysPage() {
               {testingKey === "ai" ? "Memeriksa..." : "Test Koneksi"}
             </button>
             {testKeyResult && (
-              <span className={cn(
-                "flex items-center gap-1 text-xs font-mono",
-                testKeyResult.valid ? "text-trace" : "text-danger",
-              )}>
-                {testKeyResult.valid ? <><Check className="h-3 w-3" /> Valid</> : <>✗ {testKeyResult.error}</>}
-                {testKeyResult.warning && <span className="text-muted">({testKeyResult.warning})</span>}
-              </span>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={testKeyResult.valid ? "valid" : "invalid"}
+                  initial={testKeyResult.valid ? { scale: 0 } : { x: -4 }}
+                  animate={testKeyResult.valid ? { scale: 1 } : { x: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={
+                    testKeyResult.valid
+                      ? { type: "spring", stiffness: 500, damping: 25 }
+                      : { duration: 0.15, ease: "easeOut" }
+                  }
+                  className={cn(
+                    "flex items-center gap-1 text-xs font-mono",
+                    testKeyResult.valid ? "text-trace" : "text-danger",
+                  )}
+                >
+                  {testKeyResult.valid ? <><Check className="h-3 w-3" /> Valid</> : <>✗ {testKeyResult.error}</>}
+                  {testKeyResult.warning && <span className="text-muted">({testKeyResult.warning})</span>}
+                </motion.span>
+              </AnimatePresence>
             )}
           </div>
         </div>
@@ -384,9 +405,12 @@ export default function ApiKeysPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  {testAllResult.results.map((r) => (
-                    <div
+                  {testAllResult.results.map((r, i) => (
+                    <motion.div
                       key={r.id}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
                       className={cn(
                         "flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-mono border",
                         r.ok ? "border-trace/30 bg-trace/5" : "border-danger/20 bg-danger/5",
@@ -407,7 +431,7 @@ export default function ApiKeysPage() {
                         </span>
                       </div>
                       <span className="text-muted shrink-0">{r.ok ? "OK" : r.error}</span>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
 

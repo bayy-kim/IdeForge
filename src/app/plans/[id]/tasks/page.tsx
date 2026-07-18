@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StepNav } from "@/components/step-nav";
 import { Badge } from "@/components/ui/badge";
 import { cn, apiFetch } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Plan, PlanTask } from "@/lib/types";
 
 export default function TasksPage() {
@@ -187,8 +188,14 @@ export default function TasksPage() {
       </div>
 
       <div className="flex flex-col gap-6">
-        {filteredGrouped.map((group) => (
-          <div key={group.featureName} className="rounded-xl border border-line bg-ink-raised p-5">
+        {filteredGrouped.map((group, gi) => (
+          <motion.div
+            key={group.featureName}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: gi * 0.08, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-xl border border-line bg-ink-raised p-5"
+          >
             <div className="mb-3 flex items-center gap-2">
               <Badge variant="signal">Fase {group.phase}</Badge>
               <h2 className="font-display font-semibold text-paper">{group.featureName}</h2>
@@ -201,8 +208,14 @@ export default function TasksPage() {
               </button>
             </div>
             <ul className="flex flex-col gap-2">
-              {group.tasks.map((t) => (
-                <li key={t.id} className="flex items-start gap-3">
+              {group.tasks.map((t, ti) => (
+                <motion.li
+                  key={t.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25, delay: gi * 0.08 + ti * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-start gap-3"
+                >
                   <button
                     onClick={() => toggleTask(t.id, !t.done)}
                     className={cn(
@@ -210,7 +223,19 @@ export default function TasksPage() {
                       t.done ? "border-trace bg-trace text-ink" : "border-line hover:border-trace/50",
                     )}
                   >
-                    {t.done && <Check className="h-3.5 w-3.5" />}
+                    <AnimatePresence mode="wait">
+                      {t.done && (
+                        <motion.span
+                          key="check"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </button>
                   <div>
                     <p className={cn("text-sm text-paper", t.done && "text-muted line-through")}>
@@ -218,10 +243,10 @@ export default function TasksPage() {
                     </p>
                     <p className="text-xs text-muted">{t.description}</p>
                   </div>
-                </li>
+                </motion.li>
               ))}
             </ul>
-          </div>
+          </motion.div>
         ))}
       </div>
 

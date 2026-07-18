@@ -4,10 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { signOut, signIn } from "next-auth/react";
-import { 
-  X, Menu, History, Settings, LogOut, Download, GitBranch, Plus, User, Check, ShieldAlert
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { X, Menu, History, Settings, LogOut, Download, GitBranch, Plus, User, Check, ShieldAlert } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SidebarMenuProps {
   planId?: string;
@@ -90,23 +88,25 @@ export function SidebarMenu({
           traps position:fixed descendants and breaks this drawer). */}
       {mounted &&
         createPortal(
-          <>
-            <div
-              className={cn(
-                "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-none",
-                isOpen ? "opacity-100 pointer-events-auto" : "opacity-0"
-              )}
-              style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
-            />
+          <AnimatePresence>
+            {isOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                />
 
-            <div
-              ref={sidebarRef}
-              className={cn(
-                "fixed right-0 top-0 bottom-0 z-50 w-full max-w-[340px] border-l border-line bg-ink-raised shadow-2xl transition-transform duration-300 flex flex-col",
-                isOpen ? "translate-x-0" : "translate-x-full"
-              )}
-              style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
-            >
+                <motion.div
+                  ref={sidebarRef}
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ type: "spring", damping: 28, stiffness: 300 }}
+                  className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-[340px] border-l border-line bg-ink-raised shadow-2xl flex flex-col"
+                >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <span className="font-display font-bold text-paper text-sm uppercase tracking-wider">
@@ -151,30 +151,27 @@ export function SidebarMenu({
             <span className="font-mono text-[9px] uppercase tracking-widest text-muted mb-1 px-1">
               Navigasi Cepat
             </span>
-            <Link
-              href="/plan"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink hover:border-line transition-all"
-            >
-              <Plus className="h-4 w-4 text-signal shrink-0" />
-              <span>Buat Plan Baru</span>
-            </Link>
-            <Link
-              href="/history"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink hover:border-line transition-all"
-            >
-              <History className="h-4 w-4 text-trace shrink-0" />
-              <span>Riwayat Rencana</span>
-            </Link>
-            <Link
-              href="/apikeys"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink hover:border-line transition-all"
-            >
-              <Settings className="h-4 w-4 text-muted shrink-0" />
-              <span>Pengaturan Lengkap</span>
-            </Link>
+            {[
+              { href: "/plan", icon: <Plus className="h-4 w-4 text-signal shrink-0" />, label: "Buat Plan Baru" },
+              { href: "/history", icon: <History className="h-4 w-4 text-trace shrink-0" />, label: "Riwayat Rencana" },
+              { href: "/apikeys", icon: <Settings className="h-4 w-4 text-muted shrink-0" />, label: "Pengaturan Lengkap" },
+            ].map((item, i) => (
+              <motion.div
+                key={item.href}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <Link
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-xs font-mono text-muted hover:text-paper hover:bg-ink hover:border-line transition-all"
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              </motion.div>
+            ))}
           </div>
 
           {/* Project Actions (Download & GitHub) */}
@@ -243,7 +240,13 @@ export function SidebarMenu({
               </div>
 
               {showApiKeyInput && (
-                <div className="flex flex-col gap-2 mt-1">
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex flex-col gap-2 mt-1 overflow-hidden"
+                >
                   <input
                     type="password"
                     placeholder="AIzaSy..."
@@ -257,7 +260,7 @@ export function SidebarMenu({
                   >
                     Simpan Key
                   </button>
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
@@ -278,8 +281,10 @@ export function SidebarMenu({
             </button>
           </div>
         )}
-            </div>
-          </>,
+            </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
           document.body,
         )}
     </>

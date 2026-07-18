@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { cn, apiFetch } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Plan } from "@/lib/types";
 
 type Tab = "prompt" | "skills";
@@ -132,8 +133,16 @@ export default function PromptPage() {
         </button>
       </div>
 
-      {activeTab === "prompt" && (
-        <div className="flex flex-col gap-4">
+      <AnimatePresence mode="wait">
+        {activeTab === "prompt" && (
+          <motion.div
+            key="prompt"
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="flex flex-col gap-4"
+          >
           <div className="flex justify-end gap-2">
             <Button variant="secondary" size="sm" onClick={downloadMd}>
               <Download className="h-3.5 w-3.5 mr-1" /> .md
@@ -168,11 +177,18 @@ export default function PromptPage() {
               </pre>
             </div>
           ))}
-        </div>
-      )}
+          </motion.div>
+        )}
 
-      {activeTab === "skills" && (
-        <div className="rounded-xl border border-line bg-ink-raised p-8">
+        {activeTab === "skills" && (
+          <motion.div
+            key="skills"
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="rounded-xl border border-line bg-ink-raised p-8"
+          >
           {plan.requiredSkills ? (
             <>
               <div className="mb-4 flex items-center gap-2 text-trace">
@@ -190,8 +206,9 @@ export default function PromptPage() {
               Daftar skill & dependensi akan dibuat otomatis setelah prompt selesai di-generate.
             </p>
           )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="mt-8 flex justify-center">
         <Link

@@ -7,6 +7,7 @@ import { ArrowLeft, FileText, Trash2, Download, Upload } from "lucide-react";
 import type { Plan } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { motion } from "@/components/motion";
 
 export default function PlansListPage() {
   const router = useRouter();
@@ -100,16 +101,35 @@ export default function PlansListPage() {
 
       <h1 className="font-display text-2xl font-bold text-paper">Daftar Rencana</h1>
 
-      {plans === null && <p className="mt-6 text-sm text-muted">Memuat...</p>}
+      {plans === null && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="mt-6 text-sm text-muted"
+        >
+          Memuat...
+        </motion.p>
+      )}
 
       {plans?.length === 0 && (
-        <p className="mt-6 text-sm text-muted">Belum ada rencana. Mulai buat rencana pertamamu.</p>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mt-6 text-sm text-muted"
+        >
+          Belum ada rencana. Mulai buat rencana pertamamu.
+        </motion.p>
       )}
 
       <div className="mt-6 flex flex-col gap-3">
-        {plans?.map((plan) => (
-          <div
+        {plans?.map((plan, i) => (
+          <motion.div
             key={plan.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
             className="group flex items-center justify-between gap-3 rounded-lg border border-line bg-ink-raised p-4 transition-colors hover:border-signal/40"
           >
             <Link
@@ -153,7 +173,7 @@ export default function PlansListPage() {
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </main>

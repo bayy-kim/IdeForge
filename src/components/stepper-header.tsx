@@ -8,6 +8,7 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { GitBranch, X, Loader2, Check, ExternalLink } from "lucide-react";
 import { SidebarMenu } from "@/components/sidebar-menu";
+import { motion, AnimatePresence } from "framer-motion";
 
 const STAGES = [
   { key: "plan", label: "Plan" },
@@ -200,15 +201,24 @@ export function StepperHeader({ planId }: { planId?: string }) {
       </div>
 
       {/* GitHub modal (shared desktop + mobile) */}
-      {showGithub && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setShowGithub(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-xl border border-line bg-ink-raised p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showGithub && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={() => setShowGithub(false)}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-md rounded-xl border border-line bg-ink-raised p-5 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4 text-signal" />
@@ -225,7 +235,14 @@ export function StepperHeader({ planId }: { planId?: string }) {
             {githubSuccess ? (
               <div className="py-4">
                 <div className="text-center">
-                  <Check className="h-8 w-8 text-trace mx-auto mb-2" />
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.1 }}
+                    className="inline-flex"
+                  >
+                    <Check className="h-8 w-8 text-trace mx-auto mb-2" />
+                  </motion.span>
                   <p className="text-sm text-paper mb-2">Berhasil dipush ke GitHub!</p>
                   <a
                     href={githubSuccess}
@@ -310,9 +327,10 @@ export function StepperHeader({ planId }: { planId?: string }) {
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
             }

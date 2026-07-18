@@ -1,4 +1,5 @@
 import { StepperHeader } from "@/components/stepper-header";
+import { PageTransition } from "@/components/motion";
 
 export default async function PlanLayout({
   children,
@@ -11,7 +12,7 @@ export default async function PlanLayout({
   return (
     <div className="min-h-screen">
       <StepperHeader planId={id} />
-      {children}
+      <PageTransition>{children}</PageTransition>
     </div>
   );
 }
