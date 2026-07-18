@@ -4,6 +4,7 @@ import { generateJSON, GeminiConfigError, GeminiRequestError } from "@/lib/ai/ge
 import { techRecommendationSchema } from "@/lib/ai/schemas";
 import { techRecommendationPrompt } from "@/lib/ai/prompts";
 import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
+import { aiRateLimit } from "@/lib/rate-limit";
 import type { TechChoice } from "@/lib/types";
 
 export async function POST(
@@ -11,6 +12,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+
+  const rateLimitError = await aiRateLimit(req);
+  if (rateLimitError) return rateLimitError;
+
   const plan = await getPlan(id);
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });

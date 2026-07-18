@@ -86,6 +86,14 @@ export function dbReady(): Promise<void> {
           PRIMARY KEY (device_id, key)
         );
       `);
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS rate_limits (
+          identifier TEXT NOT NULL,
+          window_start TEXT NOT NULL,
+          count INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (identifier, window_start)
+        );
+      `);
       } catch (e) {
         _dbReady = null;
         _dbFailed = true;

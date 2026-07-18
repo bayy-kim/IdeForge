@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPlan, listPlansByUser } from "@/lib/db/repo";
 import { auth } from "@/lib/auth";
+import { createPlanRateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
   try {
@@ -20,6 +21,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = await createPlanRateLimit(req);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json().catch(() => null);
     const ideaText: string | undefined = body?.ideaText?.trim();
     const language: string = body?.language || "id";

@@ -3,12 +3,17 @@ import { getPlan, updatePlan } from "@/lib/db/repo";
 import { generateText, GeminiConfigError, GeminiRequestError } from "@/lib/ai/gemini";
 import { finalPromptCompilePrompt, requiredSkillsPrompt } from "@/lib/ai/prompts";
 import { checkPlanOwnership, resolveAIConfig } from "@/app/api/auth-utils";
+import { aiRateLimit } from "@/lib/rate-limit";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+
+  const rateLimitError = await aiRateLimit(req);
+  if (rateLimitError) return rateLimitError;
+
   const plan = await getPlan(id);
   if (!plan) {
     return NextResponse.json({ error: "Plan tidak ditemukan." }, { status: 404 });
