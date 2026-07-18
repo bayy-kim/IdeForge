@@ -222,7 +222,7 @@ export default function LandingPage() {
       <StepNav
         prevLabel="Kembali ke PRD"
         prevHref={`/plans/${id}/prd`}
-        nextLabel="Select & Continue to Task"
+        nextLabel="Pilih & Lanjut ke Task"
         nextDisabled={!selected}
         nextLoading={advancing}
         onNext={confirmAndContinue}
