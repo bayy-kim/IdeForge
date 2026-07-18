@@ -62,6 +62,8 @@ export function dbReady(): Promise<void> {
       try { await client.execute("ALTER TABLE plans ADD COLUMN folder_structure TEXT"); } catch {}
       try { await client.execute("ALTER TABLE plans ADD COLUMN required_skills TEXT"); } catch {}
       try { await client.execute("ALTER TABLE plans ADD COLUMN srs TEXT"); } catch {}
+      try { await client.execute("CREATE INDEX IF NOT EXISTS idx_plans_user_email ON plans(user_email)"); } catch {}
+      try { await client.execute("CREATE INDEX IF NOT EXISTS idx_plans_created_at ON plans(created_at)"); } catch {}
       await client.execute(`
         CREATE TABLE IF NOT EXISTS gemini_usage (
           date TEXT PRIMARY KEY,
