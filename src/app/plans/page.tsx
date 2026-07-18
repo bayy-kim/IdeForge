@@ -83,11 +83,11 @@ export default function PlansListPage() {
           className="inline-flex items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-paper"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          new plan
+          buat rencana
         </Link>
         <Button variant="outline" size="sm" onClick={handleImportClick} disabled={importing}>
           <Upload className="h-3.5 w-3.5" />
-          {importing ? "Importing..." : "Import"}
+          {importing ? "Mengimpor..." : "Impor"}
         </Button>
         <input
           ref={fileInputRef}
@@ -98,12 +98,12 @@ export default function PlansListPage() {
         />
       </div>
 
-      <h1 className="font-display text-2xl font-bold text-paper">Previous Plans</h1>
+      <h1 className="font-display text-2xl font-bold text-paper">Daftar Rencana</h1>
 
       {plans === null && <p className="mt-6 text-sm text-muted">Memuat...</p>}
 
       {plans?.length === 0 && (
-        <p className="mt-6 text-sm text-muted">No plans yet. Create your first one.</p>
+        <p className="mt-6 text-sm text-muted">Belum ada rencana. Mulai buat rencana pertamamu.</p>
       )}
 
       <div className="mt-6 flex flex-col gap-3">
