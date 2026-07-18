@@ -9,17 +9,17 @@ import { AuthButton } from "@/components/auth-button";
 import { HeroMindmap } from "@/components/hero-mindmap";
 
 const howItWorks = [
-  { icon: MessageSquare, title: "Tell your idea", desc: "Write your app idea in your own words." },
-  { icon: Sparkles, title: "AI recommends", desc: "Get tech stack recommendations + clarifying questions." },
-  { icon: FileText, title: "PRD & structure", desc: "AI generates PRD, feature structure, and task breakdown." },
-  { icon: Code, title: "Ready-to-use prompt", desc: "Get a final prompt for Claude Code / Cursor." },
+  { icon: MessageSquare, title: "Ceritakan ide kamu", desc: "Tulis ide aplikasi kamu dengan kata-kata sendiri." },
+  { icon: Sparkles, title: "AI rekomendasi", desc: "Dapat rekomendasi tech stack + pertanyaan klarifikasi." },
+  { icon: FileText, title: "PRD & struktur", desc: "AI bikin PRD, struktur fitur, dan task breakdown." },
+  { icon: Code, title: "Prompt siap pakai", desc: "Dapat prompt final untuk Claude Code / Cursor." },
 ];
 
 const faqs = [
-  { q: "What is IdeForge?", a: "IdeForge is a free tool that helps you turn your app idea into a complete technical plan: tech stack, PRD, feature structure, task breakdown, and a ready-to-use coding prompt — all powered by AI." },
-  { q: "Is it free?", a: "Yes, it's free. You just need a Google Gemini API key (free tier) to generate the AI content." },
-  { q: "What languages are supported?", a: "Indonesian and English. PRD, tasks, and prompt results follow the language you choose." },
-  { q: "Can I use the results directly?", a: "Yes. The final prompt can be copied directly to Claude Code, Cursor, or any other AI coding assistant to start building." },
+  { q: "Apa itu IdeForge?", a: "IdeForge adalah tools gratis yang bantu kamu mengubah ide aplikasi jadi rencana teknis lengkap: tech stack, PRD, struktur fitur, task breakdown, dan prompt coding siap pakai — semua dibantu AI." },
+  { q: "Apakah gratis?", a: "Iya, gratis. Kamu cuma perlu API key Google Gemini (free tier) buat generate konten AI-nya." },
+  { q: "Bahasa apa aja yang didukung?", a: "Bahasa Indonesia dan Inggris. PRD, task, dan prompt hasilnya ikut bahasa yang kamu pilih." },
+  { q: "Hasilnya bisa langsung dipakai?", a: "Tentu. Prompt final bisa langsung dicopy ke Claude Code, Cursor, atau AI coding assistant lainnya buat mulai ngoding." },
 ];
 
 export default function HomePage() {
@@ -108,7 +108,7 @@ export default function HomePage() {
               className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Guide</span>
+              <span className="hidden sm:inline">Panduan</span>
             </Link>
             <AuthButton />
           </div>
@@ -128,7 +128,7 @@ export default function HomePage() {
           >
             <motion.div style={{ y: badgeY }}>
               <span className="inline-block rounded-full border border-signal/30 bg-signal-dim px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-signal">
-                From idea to technical plan
+                Dari ide ke rencana teknis
               </span>
             </motion.div>
 
@@ -136,15 +136,15 @@ export default function HomePage() {
               style={{ y: titleY }}
               className="mt-6 font-display text-4xl font-bold tracking-tight text-paper sm:text-6xl"
             >
-              Your app idea,{" "}
-              <span className="text-signal">AI-broken down</span>
+              Ide aplikasi kamu,{" "}
+              <span className="text-signal">dipecah AI</span>
             </motion.h1>
 
             <motion.p
               style={{ y: descY }}
               className="mx-auto mt-4 max-w-xl text-base text-muted sm:text-lg"
             >
-              Just tell us your idea, AI will map it into a tech stack, PRD, task breakdown, and a ready-to-use prompt for coding.
+              Tinggal ceritain ide kamu, AI bakal petakan jadi tech stack, PRD, task breakdown, dan prompt coding siap pakai.
             </motion.p>
 
             <div className="mt-10 flex justify-center">
@@ -165,7 +165,7 @@ export default function HomePage() {
               style={{ opacity: howTitleO, y: howTitleY }}
               className="text-center font-display text-2xl font-bold text-paper"
             >
-              How it works
+              Cara Kerja
             </motion.h2>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {howItWorks.map((item, i) => {
