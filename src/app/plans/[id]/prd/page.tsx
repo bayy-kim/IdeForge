@@ -299,7 +299,7 @@ export default function PrdPage() {
             </article>
           ) : (
             <p className="text-sm text-muted text-center py-12">
-              Folder structure will be generated automatically after PRD creation. Regenerate PRD to create it.
+              Struktur folder belum digenerate. Tekan <strong>Regenerate</strong> di atas untuk membuatnya.
             </p>
           )}
         </div>
