@@ -13,6 +13,7 @@ export function AuthButton() {
       <div className="flex items-center gap-1.5 sm:gap-2">
         <Link
           href="/history"
+          aria-label="Riwayat rencana"
           className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper sm:px-3"
         >
           <History className="h-3.5 w-3.5 shrink-0" />
@@ -20,6 +21,7 @@ export function AuthButton() {
         </Link>
         <Link
           href="/apikeys"
+          aria-label="Pengaturan"
           className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper sm:px-3"
         >
           <Settings className="h-3.5 w-3.5 shrink-0" />
@@ -27,6 +29,7 @@ export function AuthButton() {
         </Link>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
+          aria-label="Logout akun"
           className="flex items-center gap-1.5 rounded-full border border-line px-2 py-1.5 font-mono text-xs text-muted transition-colors hover:border-danger/40 hover:text-danger sm:px-3"
         >
           <LogOut className="h-3.5 w-3.5 shrink-0" />

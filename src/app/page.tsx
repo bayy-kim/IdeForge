@@ -105,6 +105,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Link
               href="/panduanpenggunaan"
+              aria-label="Panduan penggunaan"
               className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-signal/40 hover:text-paper"
             >
               <BookOpen className="h-3.5 w-3.5" />
