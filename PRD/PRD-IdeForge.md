@@ -27,7 +27,7 @@ Tujuan utamanya: memangkas jarak antara "punya ide" dan "siap mulai ngoding", ta
 | Fitur | Detail Implementasi |
 |-------|---------------------|
 | **Input ide** | Halaman `/plan` dengan textarea, validasi min 8 karakter, pilihan bahasa (ID/EN) |
-| **Multi-provider AI** | Halaman `/apikeys` mendukung: Google Gemini, Anthropic Claude, Custom endpoint — simpan ke DB + localStorage |
+| **Multi-provider AI** | Halaman `/apikeys` mendukung: Google Gemini, Anthropic Claude, Custom endpoint — simpan ke DB + localStorage (API key terenkripsi AES-256-GCM). "Test All Models" untuk cek semua model Gemini. |
 | **Pilihan tech stack** | Step "Tech": AI rekomendasikan (JSON structured output) atau user isi manual (frontend/backend/database) |
 | **Pertanyaan klarifikasi dinamis** | Step "Questions": AI generate 3-5 pertanyaan spesifik ide (bukan template), support type `text`/`choice`, `multi` select, `allowCustom`, required/optional |
 | **Struktur fitur (Mind-map)** | Step "Structure": React Flow interactive graph — root node (appName), feature nodes per phase, subpanel nodes. Edit nama/ringkasan inline. |
@@ -37,13 +37,14 @@ Tujuan utamanya: memangkas jarak antara "punya ide" dan "siap mulai ngoding", ta
 | **Task breakdown** | Step "Tasks": Setiap sub-fitur jadi task minimal 1, group by feature/phase, filter fase, mark all done, export CSV, regenerate |
 | **Prompt final** | Step "Prompt": Compile tech stack + PRD + tasks + landing style → prompt terstruktur untuk AI coding assistant (urutan backend-first, fase 1 dulu, validasi input, error handling). Tab "Persiapan & Skill": daftar runtime, dependencies, VS Code extensions, env vars, setup steps. Copy per section / all, download `.md` |
 | **Google OAuth** | NextAuth v5 (Google + GitHub provider), session callback, protected routes |
-| **Settings persist** | API key, provider, api_url disimpan ke table `settings` (per user email atau device_id), sync ke localStorage untuk client-side header injection |
+| **Settings persist** | API key, provider, api_url disimpan ke table `settings` (per user email atau device_id), sync ke localStorage. API key disimpan terenkripsi AES-256-GCM di database. |
 | **History plan** | Halaman `/history` list plans milik user (login wajib), link ke plan, delete dengan konfirmasi |
 | **Riwayat lintas perangkat** | Data plan + settings tersimpan ke Turso (production) / SQLite (local) — login di device lain = data ikut |
-| **Model fallback otomatis** | Array `MODEL_CANDIDATES` di `gemini.ts`: `GEMINI_MODEL` env → `gemini-3-flash-preview` → `gemini-2.0-flash` → `gemini-2.5-flash`. 404/"no longer available" = skip ke berikutnya |
+| **Model fallback otomatis** | Array `MODEL_CANDIDATES` di `gemini.ts`: `GEMINI_MODEL` env → `gemini-3.5-flash` → `gemini-3-flash-preview` → `gemini-3.1-flash-lite` → `gemini-2.5-flash` dst. |
 | **Retry logic** | Max 3 attempt, exponential backoff (1s → 2s → 4s, max 8s) untuk status 429/503 |
-| **Usage tracker** | Table `gemini_usage` (date PK, count). Counter increment per successful call. Estimasi: 1500 req/hari ÷ 7 call/plan ≈ 214 plan/hari. Tampil di `/plan` |
-| **GitHub push** | POST `/api/plans/[id]/github` — create repo via GitHub API, push README, PRD, tech-stack.md, features.md, prompt.md |
+| **Retry UI** | Tombol "Coba Lagi" interaktif dengan loading loader spinner pada state error AI generation (Tech step, Questions step, Structure page) |
+| **Usage tracker** | Tabel `model_usage` melacak pemakaian harian per-model secara akurat. Limit harian dibedakan (flash/freeTier = 1500, pro/billing = 500) |
+| **GitHub push** | POST `/api/plans/[id]/github` — membuat repo GitHub, melacak status push per-file, menampilkan error detail dari GitHub, serta mencegah duplikasi |
 | **Panduan lengkap** | Halaman `/panduanpenggunaan` dengan studi kasus "Aplikasi Pencatat Pengeluaran via WhatsApp" + contoh output setiap step |
 | **Animated dock** | Hero landing page: 6 ikon (Code, FileText, MessageSquare, Sparkles, BookOpen, ChevronDown) dengan Framer Motion scroll-linked animation |
 | **Step indicator** | Komponen `StepNav` + `StepperHeader` visual di tiap step wizard |
@@ -141,18 +142,19 @@ Tujuan utamanya: memangkas jarak antara "punya ide" dan "siap mulai ngoding", ta
 | `created_at` | TEXT | ISO string |
 | `updated_at` | TEXT | ISO string |
 
-### Table: `gemini_usage`
+### Table: `model_usage`
 | Column | Type | Notes |
 |--------|------|-------|
-| `date` | TEXT PK | `YYYY-MM-DD` |
-| `count` | INTEGER DEFAULT 0 | Increment per successful AI call |
+| `date` | TEXT PK | `YYYY-MM-DD` (composite) |
+| `model` | TEXT PK | Nama model AI (composite) |
+| `count` | INTEGER DEFAULT 0 | Increment per successful AI call per model |
 
 ### Table: `settings`
 | Column | Type | Notes |
 |--------|------|-------|
 | `device_id` | TEXT | PK (composite) |
 | `key` | TEXT | PK (composite) — `ai_api_key`, `ai_provider`, `ai_api_url` |
-| `value` | TEXT | Encrypted/plain value |
+| `value` | TEXT | Nilai pengaturan (terenkripsi AES-256-GCM untuk `ai_api_key`) |
 | `created_at` | TEXT | `datetime('now')` |
 | `updated_at` | TEXT | `datetime('now')` |
 
@@ -214,11 +216,13 @@ Tujuan utamanya: memangkas jarak antara "punya ide" dan "siap mulai ngoding", ta
 | Path | Fungsi |
 |------|--------|
 | `src/lib/ai/gemini.ts` | Client Gemini: fallback model, retry, structured output, usage increment |
+| `src/lib/ai/models.ts` | Registri model Gemini (free tier tagging & priority fallback chain) |
 | `src/lib/ai/prompts.ts` | Semua prompt template (tech, questions, structure, PRD, landing, tasks, final, skills) |
 | `src/lib/ai/schemas.ts` | JSON schema untuk Gemini structured output |
-| `src/lib/db/schema.ts` | Drizzle schema `plans`, `gemini_usage`, `settings` |
+| `src/lib/db/schema.ts` | Drizzle schema `plans`, `settings` |
 | `src/lib/db/repo.ts` | CRUD plan (create, get, listByUser, update, delete) |
-| `src/lib/db/usage.ts` | Usage counter + estimasi sisa |
+| `src/lib/db/usage.ts` | Usage counter harian per-model + estimasi sisa |
+| `src/lib/crypto.ts` | Pengenkripsi/dekripsi kunci sensitif (AES-256-GCM) dengan SETTINGS_ENCRYPTION_KEY |
 | `src/lib/auth.ts` | NextAuth v5 config (Google, GitHub) |
 | `src/lib/types.ts` | Semua type domain (Plan, TechChoice, ClarifyingQuestion, PlanStructure, PlanTask, LandingOption) |
 | `src/app/api/plans/[id]/tech/route.ts` | Step Tech: AI rekomendasi / manual save |
