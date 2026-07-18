@@ -49,17 +49,6 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ("serviceWorker" in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(regs) {
-                  for (let r of regs) r.unregister();
-                });
-              }
-            `,
-          }}
-        />
         <SessionProvider session={session}>{children}</SessionProvider>
       </body>
     </html>
